@@ -461,8 +461,16 @@ function setSyncStatus(state, msg) {
 
 // ── LOAD: GitHub primero, localStorage como fallback ───────────
 async function loadState() {
-  // Si no hay token guardado → pedirlo
-  if(!GH.token) { showTokenModal(); return; }
+  // Sin token → cargar datos por defecto y mostrar modal
+  if(!GH.token) {
+    const raw = localStorage.getItem(LOCAL_KEY);
+    comics = raw ? JSON.parse(raw) : buildDefault();
+    if(!comics.length) comics = buildDefault();
+    saveLocalOnly();
+    render();
+    showTokenModal();
+    return;
+  }
 
   setSyncStatus('loading','Cargando…');
   try {
@@ -478,6 +486,8 @@ async function loadState() {
       await pushToGitHub('Colección inicial');
     } else if(res.status === 401) {
       setSyncStatus('error','Token inválido');
+      const raw = localStorage.getItem(LOCAL_KEY);
+      comics = raw ? JSON.parse(raw) : buildDefault();
       showTokenModal();
     } else {
       throw new Error(`GitHub ${res.status}`);
@@ -488,6 +498,10 @@ async function loadState() {
     setSyncStatus('error','Sin conexión — guardado local');
     console.warn('GitHub no disponible:', e);
   }
+}
+
+function saveLocalOnly() {
+  localStorage.setItem(LOCAL_KEY, JSON.stringify(comics));
 }
 
 // ── SAVE: localStorage inmediato + GitHub en segundo plano ─────
