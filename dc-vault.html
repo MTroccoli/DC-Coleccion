@@ -421,19 +421,25 @@ const EXTRA = [
 // ── CONFIG ─────────────────────────────────────────────────────
 const VERCEL_PROXY = 'https://dc-coleccion.vercel.app/api/claude';
 
-const GH = {
-  owner: 'MTroccoli',
-  repo:  'DC-Coleccion',
-  file:  'coleccion.json',
-  get token(){ return localStorage.getItem('gh_token')||''; },
-  get api(){ return `https://api.github.com/repos/${this.owner}/${this.repo}/contents/${this.file}`; },
-  get headers(){ return { 'Authorization':`Bearer ${this.token}`, 'Content-Type':'application/json', 'Accept':'application/vnd.github+json' }; }
+const SB = {
+  url:  'https://bpkvotdzbbvkmqkvfxzz.supabase.co',
+  key:  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwa3ZvdGR6YmJ2a21xa3ZmeHp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyNDAwMDMsImV4cCI6MjA5NDgxNjAwM30.79dpm52nUuoMkuGlZ3Lyj5g3H2pJ-CXeMuKKO6TRrd4',
+  table: 'coleccion',
+  rowId: 1,
+  get headers() {
+    return {
+      'Content-Type': 'application/json',
+      'apikey': this.key,
+      'Authorization': `Bearer ${this.key}`,
+      'Prefer': 'return=representation'
+    };
+  },
+  get endpoint() { return `${this.url}/rest/v1/${this.table}?id=eq.${this.rowId}`; }
 };
 
 // ── STATE ──────────────────────────────────────────────────────
 const LOCAL_KEY = 'dcvault_v4';
 let comics = [];
-let ghSha  = null; // SHA del archivo en GitHub, necesario para hacer PUT
 
 function buildSalvat() {
   return SALVAT_DATA.map(([n,title,arc,lore,stars,issue,char,order]) => ({
@@ -441,95 +447,84 @@ function buildSalvat() {
     arc, lore, stars, order, char, salvat:n, issue, owned:true, read:false
   }));
 }
-
 function buildDefault() {
   return [...buildSalvat(), ...EXTRA.map(e=>({...e,owned:true,read:false}))];
 }
 
-// ── SYNC STATUS UI ─────────────────────────────────────────────
+// ── SYNC STATUS ────────────────────────────────────────────────
 function setSyncStatus(state, msg) {
-  // state: 'idle' | 'saving' | 'ok' | 'error' | 'loading'
   const el = document.getElementById('sync-status');
   if(!el) return;
-  const icons = { idle:'☁', saving:'↑', ok:'✓', error:'✕', loading:'↓' };
+  const icons  = { idle:'☁', saving:'↑', ok:'✓', error:'✕', loading:'↓' };
   const colors = { idle:'var(--muted)', saving:'var(--gold)', ok:'var(--green)', error:'var(--red)', loading:'var(--gold)' };
   el.textContent = `${icons[state]} ${msg}`;
   el.style.color = colors[state];
-  if(state==='saving'||state==='loading') el.style.animation='pulse 1s infinite';
-  else el.style.animation='none';
+  el.style.animation = (state==='saving'||state==='loading') ? 'pulse 1s infinite' : 'none';
 }
 
-// ── LOAD: GitHub primero, localStorage como fallback ───────────
+// ── LOAD ───────────────────────────────────────────────────────
 async function loadState() {
-  // Sin token → cargar datos por defecto y mostrar modal
-  if(!GH.token) {
-    const raw = localStorage.getItem(LOCAL_KEY);
-    comics = raw ? JSON.parse(raw) : buildDefault();
-    if(!comics.length) comics = buildDefault();
-    saveLocalOnly();
-    render();
-    showTokenModal();
-    return;
-  }
-
-  setSyncStatus('loading','Cargando…');
+  setSyncStatus('loading', 'Cargando…');
   try {
-    const res = await fetch(GH.api, { headers: GH.headers });
-    if(res.ok) {
-      const data = await res.json();
-      ghSha   = data.sha;
-      comics  = JSON.parse(atob(data.content.replace(/\n/g,'')));
+    const res = await fetch(SB.endpoint, { headers: SB.headers });
+    if(!res.ok) throw new Error(`Supabase ${res.status}`);
+    const rows = await res.json();
+
+    if(rows.length > 0) {
+      // Fila existente — cargar datos
+      comics = rows[0].data;
       localStorage.setItem(LOCAL_KEY, JSON.stringify(comics));
-      setSyncStatus('ok','Sincronizado');
-    } else if(res.status === 404) {
-      comics = buildDefault();
-      await pushToGitHub('Colección inicial');
-    } else if(res.status === 401) {
-      setSyncStatus('error','Token inválido');
-      const raw = localStorage.getItem(LOCAL_KEY);
-      comics = raw ? JSON.parse(raw) : buildDefault();
-      showTokenModal();
+      setSyncStatus('ok', 'Sincronizado');
     } else {
-      throw new Error(`GitHub ${res.status}`);
+      // Primera vez — insertar datos por defecto
+      comics = buildDefault();
+      await insertToSupabase();
     }
   } catch(e) {
+    console.warn('Supabase no disponible, usando localStorage:', e);
     const raw = localStorage.getItem(LOCAL_KEY);
     comics = raw ? JSON.parse(raw) : buildDefault();
-    setSyncStatus('error','Sin conexión — guardado local');
-    console.warn('GitHub no disponible:', e);
+    setSyncStatus('error', 'Sin conexión — local');
   }
 }
 
-function saveLocalOnly() {
-  localStorage.setItem(LOCAL_KEY, JSON.stringify(comics));
-}
-
-// ── SAVE: localStorage inmediato + GitHub en segundo plano ─────
+// ── SAVE ───────────────────────────────────────────────────────
 let saveTimer = null;
 function saveState() {
-  // 1. Guardar localmente YA (rápido, sin esperar red)
   localStorage.setItem(LOCAL_KEY, JSON.stringify(comics));
-  // 2. Sincronizar con GitHub con debounce de 1.5s
   clearTimeout(saveTimer);
-  setSyncStatus('saving','Guardando…');
-  saveTimer = setTimeout(()=> pushToGitHub('Actualización colección'), 1500);
+  setSyncStatus('saving', 'Guardando…');
+  saveTimer = setTimeout(syncToSupabase, 1500);
 }
 
-async function pushToGitHub(message) {
+async function insertToSupabase() {
   try {
-    const body = {
-      message,
-      content: btoa(unescape(encodeURIComponent(JSON.stringify(comics, null, 2)))),
-      ...(ghSha ? { sha: ghSha } : {})
-    };
-    const res = await fetch(GH.api, { method:'PUT', headers:GH.headers, body:JSON.stringify(body) });
-    if(!res.ok) throw new Error(`GitHub PUT ${res.status}`);
-    const data = await res.json();
-    ghSha = data.content.sha;
-    setSyncStatus('ok','Sincronizado ✓');
+    const res = await fetch(`${SB.url}/rest/v1/${SB.table}`, {
+      method: 'POST',
+      headers: SB.headers,
+      body: JSON.stringify({ id: SB.rowId, data: comics })
+    });
+    if(!res.ok) throw new Error(`Insert ${res.status}`);
+    setSyncStatus('ok', 'Sincronizado');
   } catch(e) {
-    setSyncStatus('error','Error al sincronizar');
-    console.error('Error guardando en GitHub:', e);
+    setSyncStatus('error', 'Error al guardar');
+    console.error('Supabase insert error:', e);
+  }
+}
+
+async function syncToSupabase() {
+  try {
+    // UPSERT — crea si no existe, actualiza si existe
+    const res = await fetch(`${SB.url}/rest/v1/${SB.table}`, {
+      method: 'POST',
+      headers: { ...SB.headers, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify({ id: SB.rowId, data: comics })
+    });
+    if(!res.ok) throw new Error(`Upsert ${res.status}`);
+    setSyncStatus('ok', 'Sincronizado ✓');
+  } catch(e) {
+    setSyncStatus('error', 'Error al sincronizar');
+    console.error('Supabase sync error:', e);
   }
 }
 
@@ -742,50 +737,5 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();if(e.ke
 
 loadState().then(()=>render());
 </script>
-<!-- TOKEN MODAL -->
-<div class="modal-bg" id="token-modal">
-  <div class="modal">
-    <div class="modal-title">🔑 Configurar sincronización</div>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6">
-      Para sincronizar tu colección entre dispositivos necesitás un <strong style="color:var(--text)">Personal Access Token</strong> de GitHub.<br><br>
-      Crealo en <strong style="color:var(--gold)">github.com → Settings → Developer settings → Tokens (classic)</strong><br>
-      Scope necesario: <code style="background:var(--surface2);padding:2px 6px;border-radius:2px">repo</code>
-    </p>
-    <div class="fl" style="margin-bottom:16px">
-      <label>Token de GitHub</label>
-      <input id="gh-token-input" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
-    </div>
-    <div class="modal-footer">
-      <button class="btn-cancel" onclick="skipToken()">Usar sin sync</button>
-      <button class="btn btn-gold" onclick="saveToken()">GUARDAR Y CONECTAR</button>
-    </div>
-  </div>
-</div>
-
-<script>
-function showTokenModal() {
-  document.getElementById('token-modal').classList.add('open');
-  setTimeout(()=>document.getElementById('gh-token-input').focus(), 50);
-}
-function skipToken() {
-  document.getElementById('token-modal').classList.remove('open');
-  const raw = localStorage.getItem(LOCAL_KEY);
-  comics = raw ? JSON.parse(raw) : buildDefault();
-  setSyncStatus('idle','Sin sync');
-  render();
-}
-async function saveToken() {
-  const t = document.getElementById('gh-token-input').value.trim();
-  if(!t) return;
-  localStorage.setItem('gh_token', t);
-  document.getElementById('token-modal').classList.remove('open');
-  await loadState();
-  render();
-}
-// Botón cambiar token en sync-status (clic largo)
-document.getElementById('sync-status').addEventListener('dblclick', ()=>{
-  document.getElementById('gh-token-input').value = '';
-  showTokenModal();
-});
-</script>
-
+</body>
+</html>
