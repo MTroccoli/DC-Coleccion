@@ -702,7 +702,7 @@ Responde SOLO con JSON válido sin markdown:
 {"volume":"issues o vol","arc":"nombre de era exacto ej: 02 — La Era Clásica","lore":"canon|tiein|elseworlds|origen","stars":1-5,"order":número decimal en rango correcto,"char":"batman|jla|flash|crisis|ww|titanes|other","reason":"explicación breve en español"}`;
 
   try{
-    const res=await fetch(VERCEL_PROXY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:400,messages:[{role:'user',content:prompt}]})});
+    const res=await fetch(VERCEL_PROXY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:400,messages:[{role:'user',content:prompt}]})});
     const data=await res.json();
     const info=JSON.parse(data.content?.map(b=>b.text||'').join('').trim().replace(/```json|```/g,'').trim());
     if(info.volume) document.getElementById('f-volume').value=info.volume;
