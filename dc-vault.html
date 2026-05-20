@@ -140,8 +140,71 @@ main { max-width: 860px; margin: 0 auto; padding: 40px 24px 100px; }
 .icon-btn:hover { color: var(--red); border-color: var(--red); }
 .icon-btn.edit:hover { color: var(--gold); border-color: var(--gold); }
 
-/* EMPTY */
-.empty { text-align: center; padding: 80px 0; }
+/* ACCORDION */
+.era-block { margin-bottom: 16px; }
+.era-toggle {
+  display: flex; align-items: flex-start; gap: 24px;
+  padding-bottom: 16px; border-bottom: 1px solid var(--border);
+  cursor: pointer; user-select: none;
+  transition: opacity 0.15s;
+}
+.era-toggle:hover { opacity: 0.85; }
+.era-chevron {
+  font-size: 18px; color: var(--gold); opacity: 0.6;
+  margin-left: auto; padding-top: 8px; flex-shrink: 0;
+  transition: transform 0.25s;
+}
+.era-block.collapsed .era-chevron { transform: rotate(-90deg); }
+.era-body {
+  overflow: hidden;
+  max-height: 9999px;
+  transition: max-height 0.3s ease;
+}
+.era-block.collapsed .era-body { max-height: 0; }
+
+/* SWIPE TO DELETE */
+.swipe-wrap {
+  position: relative; overflow: hidden; border-radius: 3px;
+}
+.delete-bg {
+  position: absolute; right: 0; top: 0; bottom: 0;
+  width: 80px; background: var(--red);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 20px;
+  opacity: 0; transition: opacity 0.15s;
+  pointer-events: none;
+}
+.swipe-wrap.swiping .delete-bg { opacity: 1; }
+.comic-card {
+  transition: transform 0.2s ease, border-color 0.15s;
+  touch-action: pan-y;
+}
+.swipe-wrap.confirm-delete .comic-card {
+  background: #cc333322;
+  border-color: var(--red);
+}
+
+/* DELETE CONFIRM BAR */
+.delete-confirm {
+  display: none; align-items: center; justify-content: space-between;
+  background: var(--red); padding: 10px 16px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px; letter-spacing: 0.06em; color: #fff;
+}
+.swipe-wrap.confirm-delete .delete-confirm { display: flex; }
+.swipe-wrap.confirm-delete .comic-card { pointer-events: none; }
+.btn-confirm-del {
+  background: #fff; color: var(--red); border: none;
+  padding: 5px 14px; border-radius: 2px;
+  font-family: 'Bebas Neue', sans-serif; font-size: 14px;
+  cursor: pointer; letter-spacing: 0.08em;
+}
+.btn-cancel-del {
+  background: none; border: 1px solid #ffffff66; color: #fff;
+  padding: 5px 14px; border-radius: 2px;
+  font-family: 'Bebas Neue', sans-serif; font-size: 14px;
+  cursor: pointer; letter-spacing: 0.08em;
+} text-align: center; padding: 80px 0; }
 .empty-big { font-family: 'Bebas Neue', sans-serif; font-size: 64px; color: var(--dim); }
 .empty-sub { font-size: 14px; color: var(--muted); margin-top: 8px; }
 
@@ -548,6 +611,12 @@ function render() {
   const root = document.getElementById('root');
   if(!list.length){ root.innerHTML=`<div class="empty"><div class="empty-big">—</div><div class="empty-sub">Sin resultados.</div></div>`; return; }
 
+  // Remember which eras were collapsed
+  const collapsed = {};
+  document.querySelectorAll('.era-block.collapsed').forEach(el => {
+    collapsed[el.dataset.era] = true;
+  });
+
   const buckets = {};
   ERAS.forEach(e=>{ buckets[e.key]=[]; });
   list.forEach(c => {
@@ -559,51 +628,67 @@ function render() {
   ERAS.forEach(era => {
     const items = buckets[era.key];
     if(!items.length) return;
-    html += `<div class="era-block">
-      <div class="era-header">
+    const isCollapsed = collapsed[era.key] ? 'collapsed' : '';
+    const chevron = '›';
+
+    html += `<div class="era-block ${isCollapsed}" data-era="${era.key}">
+      <div class="era-toggle" onclick="toggleEra('${era.key}')">
         <div class="era-num">${era.num}</div>
         <div class="era-info">
-          <div class="era-name">${era.name}</div>
+          <div class="era-name">${era.name} <span style="color:var(--muted);font-size:13px;font-family:'Barlow',sans-serif;font-weight:300">(${items.length})</span></div>
           <div class="era-desc">${era.desc}</div>
         </div>
+        <div class="era-chevron">›</div>
       </div>
-      ${era.reset?`<div class="era-reset-banner">${era.reset}</div>`:''}
-      <div class="card-list">`;
+      <div class="era-body">
+        ${era.reset?`<div class="era-reset-banner">${era.reset}</div>`:''}
+        <div class="card-list" style="padding-top:8px">`;
 
     items.forEach(c => {
       const color = CHAR_COLORS[c.char||'other']||'var(--col-other)';
-      html += `<div class="comic-card ${c.read?'is-read':''}" data-id="${c.id}">
-        <div class="card-strip" style="background:${color}"></div>
-        <div class="card-num">${pos++}</div>
-        <div class="card-body">
-          <div class="card-title-row">
-            <span class="card-title ${c.read?'crossed':''}">${c.title}</span>
-            <span class="char-badge" style="background:${color}22;color:${color};border:1px solid ${color}44">${CHAR_LABELS[c.char||'other']||'Otro'}</span>
-            <span class="lore-tag lore-${c.lore}">${LORE_LABELS[c.lore]}</span>
-            ${c.salvat?`<span class="salvat-badge">Salvat #${c.salvat}</span>`:''}
+      html += `
+        <div class="swipe-wrap" data-id="${c.id}" id="sw-${c.id}">
+          <div class="delete-bg">🗑</div>
+          <div class="comic-card ${c.read?'is-read':''}" data-id="${c.id}">
+            <div class="card-strip" style="background:${color}"></div>
+            <div class="card-num">${pos++}</div>
+            <div class="card-body">
+              <div class="card-title-row">
+                <span class="card-title ${c.read?'crossed':''}">${c.title}</span>
+                <span class="char-badge" style="background:${color}22;color:${color};border:1px solid ${color}44">${CHAR_LABELS[c.char||'other']||'Otro'}</span>
+                <span class="lore-tag lore-${c.lore}">${LORE_LABELS[c.lore]}</span>
+                ${c.salvat?`<span class="salvat-badge">Salvat #${c.salvat}</span>`:''}
+              </div>
+              <div class="card-meta">
+                ${c.edition?`<span class="card-edition">${c.edition}</span>`:''}
+                ${c.volume?`<span class="card-edition">· ${c.volume}</span>`:''}
+                ${starsHtml(c.stars)}
+              </div>
+              ${c.issue?`<div class="card-desc">${c.issue}</div>`:''}
+            </div>
+            <div class="card-controls">
+              <div class="lbl">Tengo</div>
+              <span class="dot-owned ${c.owned?'yes':''}" onclick="toggleOwned('${c.id}')"></span>
+              <div class="lbl">Leído</div>
+              <span class="toggle-read ${c.read?'yes':''}" onclick="toggleRead('${c.id}')"></span>
+              <div class="card-actions">
+                <button class="icon-btn edit" onclick="openEdit('${c.id}')">✏</button>
+              </div>
+            </div>
           </div>
-          <div class="card-meta">
-            ${c.edition?`<span class="card-edition">${c.edition}</span>`:''}
-            ${c.volume?`<span class="card-edition">· ${c.volume}</span>`:''}
-            ${starsHtml(c.stars)}
+          <div class="delete-confirm">
+            <span>¿Eliminar este tomo?</span>
+            <div style="display:flex;gap:8px">
+              <button class="btn-cancel-del" onclick="cancelDelete('${c.id}')">Cancelar</button>
+              <button class="btn-confirm-del" onclick="confirmDelete('${c.id}')">Eliminar</button>
+            </div>
           </div>
-          ${c.issue?`<div class="card-desc">${c.issue}</div>`:''}
-        </div>
-        <div class="card-controls">
-          <div class="lbl">Tengo</div>
-          <span class="dot-owned ${c.owned?'yes':''}" onclick="toggleOwned('${c.id}')"></span>
-          <div class="lbl">Leído</div>
-          <span class="toggle-read ${c.read?'yes':''}" onclick="toggleRead('${c.id}')"></span>
-          <div class="card-actions">
-            <button class="icon-btn edit" onclick="openEdit('${c.id}')">✏</button>
-            <button class="icon-btn" onclick="deleteComic('${c.id}')">✕</button>
-          </div>
-        </div>
-      </div>`;
+        </div>`;
     });
-    html += `</div></div>`;
+    html += `</div></div></div>`;
   });
   root.innerHTML = html;
+  initSwipe();
 }
 
 function updateStats() {
@@ -617,10 +702,62 @@ function updateStats() {
   document.getElementById('progress-label').textContent=`${read} de ${owned} leídos`;
 }
 
+// ── ACCORDION ─────────────────────────────────────────────────
+function toggleEra(key) {
+  const el = document.querySelector(`.era-block[data-era="${key}"]`);
+  if(el) el.classList.toggle('collapsed');
+}
+
+// ── SWIPE TO DELETE ────────────────────────────────────────────
+function initSwipe() {
+  document.querySelectorAll('.swipe-wrap').forEach(wrap => {
+    const card = wrap.querySelector('.comic-card');
+    let startX=0, startY=0, isDragging=false, isHorizontal=null;
+
+    card.addEventListener('touchstart', e=>{
+      startX=e.touches[0].clientX; startY=e.touches[0].clientY;
+      isDragging=true; isHorizontal=null;
+    }, {passive:true});
+
+    card.addEventListener('touchmove', e=>{
+      if(!isDragging) return;
+      const dx=e.touches[0].clientX-startX;
+      const dy=e.touches[0].clientY-startY;
+      if(isHorizontal===null) isHorizontal=Math.abs(dx)>Math.abs(dy);
+      if(!isHorizontal) return;
+      e.preventDefault();
+      if(dx<-10){
+        card.style.transform=`translateX(${Math.max(dx,-90)}px)`;
+        wrap.classList.add('swiping');
+      } else {
+        card.style.transform='';
+        wrap.classList.remove('swiping');
+      }
+    }, {passive:false});
+
+    card.addEventListener('touchend', e=>{
+      isDragging=false;
+      const dx=e.changedTouches[0].clientX-startX;
+      card.style.transform='';
+      wrap.classList.remove('swiping');
+      if(dx<-60) wrap.classList.add('confirm-delete');
+    });
+  });
+}
+
+function cancelDelete(id) {
+  const wrap=document.getElementById(`sw-${id}`);
+  if(wrap) wrap.classList.remove('confirm-delete');
+}
+function confirmDelete(id) {
+  comics=comics.filter(x=>x.id!==id);
+  saveState(); render();
+}
+
 // ── ACTIONS ───────────────────────────────────────────────────
 function toggleOwned(id){ const c=comics.find(x=>x.id===id); if(c){c.owned=!c.owned;if(!c.owned)c.read=false;saveState();render();} }
 function toggleRead(id){  const c=comics.find(x=>x.id===id); if(c){c.read=!c.read;saveState();render();} }
-function deleteComic(id){ if(!confirm('¿Eliminar este tomo?'))return; comics=comics.filter(x=>x.id!==id);saveState();render(); }
+function deleteComic(id){ confirmDelete(id); }
 
 // ── MODAL ─────────────────────────────────────────────────────
 let editId=null;
@@ -702,7 +839,7 @@ Responde SOLO con JSON válido sin markdown:
 {"volume":"issues o vol","arc":"nombre de era exacto ej: 02 — La Era Clásica","lore":"canon|tiein|elseworlds|origen","stars":1-5,"order":número decimal en rango correcto,"char":"batman|jla|flash|crisis|ww|titanes|other","reason":"explicación breve en español"}`;
 
   try{
-    const res=await fetch(VERCEL_PROXY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:400,messages:[{role:'user',content:prompt}]})});
+    const res=await fetch(VERCEL_PROXY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:400,messages:[{role:'user',content:prompt}]})});
     const data=await res.json();
     const info=JSON.parse(data.content?.map(b=>b.text||'').join('').trim().replace(/```json|```/g,'').trim());
     if(info.volume) document.getElementById('f-volume').value=info.volume;
