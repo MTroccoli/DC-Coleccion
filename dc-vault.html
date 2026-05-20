@@ -418,12 +418,14 @@ const EXTRA = [
   {id:'x-3jokers', title:'Batman: 3 Jokers',                       volume:'',               edition:'DC Black Label',arc:'Elseworlds',                    lore:'elseworlds',stars:4,order:86, char:'batman',salvat:null,issue:'Batman: Three Jokers #1-3'},
 ];
 
-// ── CONFIG GITHUB ──────────────────────────────────────────────
+// ── CONFIG ─────────────────────────────────────────────────────
+const VERCEL_PROXY = 'https://dc-coleccion.vercel.app/api/claude';
+
 const GH = {
   owner: 'MTroccoli',
   repo:  'DC-Coleccion',
   file:  'coleccion.json',
-  token: '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',
+  get token(){ return localStorage.getItem('gh_token')||''; },
   get api(){ return `https://api.github.com/repos/${this.owner}/${this.repo}/contents/${this.file}`; },
   get headers(){ return { 'Authorization':`Bearer ${this.token}`, 'Content-Type':'application/json', 'Accept':'application/vnd.github+json' }; }
 };
@@ -459,6 +461,9 @@ function setSyncStatus(state, msg) {
 
 // ── LOAD: GitHub primero, localStorage como fallback ───────────
 async function loadState() {
+  // Si no hay token guardado → pedirlo
+  if(!GH.token) { showTokenModal(); return; }
+
   setSyncStatus('loading','Cargando…');
   try {
     const res = await fetch(GH.api, { headers: GH.headers });
@@ -469,18 +474,19 @@ async function loadState() {
       localStorage.setItem(LOCAL_KEY, JSON.stringify(comics));
       setSyncStatus('ok','Sincronizado');
     } else if(res.status === 404) {
-      // Archivo no existe todavía en GitHub → usar default y subir
       comics = buildDefault();
       await pushToGitHub('Colección inicial');
+    } else if(res.status === 401) {
+      setSyncStatus('error','Token inválido');
+      showTokenModal();
     } else {
       throw new Error(`GitHub ${res.status}`);
     }
   } catch(e) {
-    // Offline o error → usar localStorage
     const raw = localStorage.getItem(LOCAL_KEY);
     comics = raw ? JSON.parse(raw) : buildDefault();
-    setSyncStatus('error','Sin conexión — cambios guardados localmente');
-    console.warn('GitHub no disponible, usando localStorage:', e);
+    setSyncStatus('error','Sin conexión — guardado local');
+    console.warn('GitHub no disponible:', e);
   }
 }
 
@@ -687,7 +693,7 @@ Responde SOLO con JSON válido sin markdown:
 {"volume":"issues o vol","arc":"nombre de era exacto ej: 02 — La Era Clásica","lore":"canon|tiein|elseworlds|origen","stars":1-5,"order":número decimal en rango correcto,"char":"batman|jla|flash|crisis|ww|titanes|other","reason":"explicación breve en español"}`;
 
   try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,messages:[{role:'user',content:prompt}]})});
+    const res=await fetch(VERCEL_PROXY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,messages:[{role:'user',content:prompt}]})});
     const data=await res.json();
     const info=JSON.parse(data.content?.map(b=>b.text||'').join('').trim().replace(/```json|```/g,'').trim());
     if(info.volume) document.getElementById('f-volume').value=info.volume;
@@ -722,5 +728,50 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();if(e.ke
 
 loadState().then(()=>render());
 </script>
-</body>
-</html>
+<!-- TOKEN MODAL -->
+<div class="modal-bg" id="token-modal">
+  <div class="modal">
+    <div class="modal-title">🔑 Configurar sincronización</div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6">
+      Para sincronizar tu colección entre dispositivos necesitás un <strong style="color:var(--text)">Personal Access Token</strong> de GitHub.<br><br>
+      Crealo en <strong style="color:var(--gold)">github.com → Settings → Developer settings → Tokens (classic)</strong><br>
+      Scope necesario: <code style="background:var(--surface2);padding:2px 6px;border-radius:2px">repo</code>
+    </p>
+    <div class="fl" style="margin-bottom:16px">
+      <label>Token de GitHub</label>
+      <input id="gh-token-input" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="skipToken()">Usar sin sync</button>
+      <button class="btn btn-gold" onclick="saveToken()">GUARDAR Y CONECTAR</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function showTokenModal() {
+  document.getElementById('token-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('gh-token-input').focus(), 50);
+}
+function skipToken() {
+  document.getElementById('token-modal').classList.remove('open');
+  const raw = localStorage.getItem(LOCAL_KEY);
+  comics = raw ? JSON.parse(raw) : buildDefault();
+  setSyncStatus('idle','Sin sync');
+  render();
+}
+async function saveToken() {
+  const t = document.getElementById('gh-token-input').value.trim();
+  if(!t) return;
+  localStorage.setItem('gh_token', t);
+  document.getElementById('token-modal').classList.remove('open');
+  await loadState();
+  render();
+}
+// Botón cambiar token en sync-status (clic largo)
+document.getElementById('sync-status').addEventListener('dblclick', ()=>{
+  document.getElementById('gh-token-input').value = '';
+  showTokenModal();
+});
+</script>
+
