@@ -470,15 +470,15 @@ async function loadState() {
     if(!res.ok) throw new Error(`Supabase ${res.status}`);
     const rows = await res.json();
 
-    if(rows.length > 0) {
-      // Fila existente — cargar datos
+    if(rows.length > 0 && rows[0].data && rows[0].data.length > 0) {
+      // Fila existente con datos — cargar
       comics = rows[0].data;
       localStorage.setItem(LOCAL_KEY, JSON.stringify(comics));
       setSyncStatus('ok', 'Sincronizado');
     } else {
-      // Primera vez — insertar datos por defecto
+      // Sin datos — cargar colección por defecto y guardar
       comics = buildDefault();
-      await insertToSupabase();
+      await syncToSupabase();
     }
   } catch(e) {
     console.warn('Supabase no disponible, usando localStorage:', e);
