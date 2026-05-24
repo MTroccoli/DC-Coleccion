@@ -472,19 +472,19 @@ main {
   position: fixed;
   bottom: calc(var(--safe-bot) + 84px);
   right: 20px;
+  left: 20px;
   background: var(--surface);
   border: 1px solid var(--border2);
   border-radius: 16px;
-  padding: 12px 16px;
+  padding: 14px 16px;
   display: flex; align-items: center; gap: 10px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.6);
   z-index: 98;
-  transform: scale(0.8) translateY(20px);
+  transform: scale(0.9) translateY(16px);
   opacity: 0;
   pointer-events: none;
-  transition: all 0.2s cubic-bezier(.4,0,.2,1);
+  transition: all 0.22s cubic-bezier(.4,0,.2,1);
   transform-origin: bottom right;
-  width: min(320px, calc(100vw - 40px));
 }
 .search-overlay.open {
   transform: scale(1) translateY(0);
@@ -544,7 +544,7 @@ main {
 .fab {
   position: fixed;
   bottom: calc(var(--safe-bot) + 84px);
-  left: 20px;
+  right: 20px;
   width: 52px; height: 52px; border-radius: 50%;
   background: var(--gold);
   color: #111;
@@ -1042,12 +1042,18 @@ function setSyncStatus(state, msg) {
 
 async function loadState() {
   setSyncStatus('loading','Cargando…');
+
+  // 1. Render something immediately — local or default
   const raw = localStorage.getItem(LOCAL_KEY);
   if(raw) {
     try { comics = JSON.parse(raw); } catch(e) { comics = buildDefault(); }
   } else {
     comics = buildDefault();
   }
+  buildHeroFilters();
+  render();
+
+  // 2. Try Supabase in background
   try {
     const res = await fetch(SB.endpoint, { headers: SB.headers });
     if(!res.ok) throw new Error('http '+res.status);
@@ -1056,6 +1062,7 @@ async function loadState() {
       comics = rows[0].data;
       const migrated = migrateChars(comics);
       localStorage.setItem(LOCAL_KEY, JSON.stringify(comics));
+      render();
       if(migrated) {
         setSyncStatus('saving','Migrando…');
         await syncToSupabase();
@@ -1063,16 +1070,17 @@ async function loadState() {
         setSyncStatus('ok','Sincronizado');
       }
     } else {
+      // Supabase vacío — subir datos locales
+      migrateChars(comics);
       setSyncStatus('saving','Guardando…');
       await syncToSupabase();
     }
   } catch(e) {
     console.warn('Supabase no disponible:', e);
     migrateChars(comics);
+    render();
     setSyncStatus('error','Sin conexión — local');
   }
-  buildHeroFilters();
-  render();
 }
   render();
 }
