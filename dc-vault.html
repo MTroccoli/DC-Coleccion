@@ -694,8 +694,7 @@ main {
 <main><div id="root"></div></main>
 
 <!-- ── FAB ── -->
-
-<!-- ── SHEET MODAL ── -->
+<button class="fab" id="btn-add">＋</button>
 <div class="sheet-bg" id="modal">
   <div class="sheet" id="sheet">
     <div class="sheet-handle"></div>
@@ -968,20 +967,34 @@ function setSyncStatus(state, msg) {
 
 async function loadState() {
   setSyncStatus('loading','Cargando…');
+  // Always try localStorage first as immediate fallback
+  const raw = localStorage.getItem(LOCAL_KEY);
+  if(raw) {
+    try { comics = JSON.parse(raw); } catch(e) { comics = buildDefault(); }
+  } else {
+    comics = buildDefault();
+  }
+  // Then try Supabase to get fresher data
   try {
     const res = await fetch(SB.endpoint, { headers: SB.headers });
-    if(!res.ok) throw new Error();
+    if(!res.ok) throw new Error('http '+res.status);
     const rows = await res.json();
-    if(rows.length>0 && rows[0].data?.length>0) {
+    if(rows.length>0 && rows[0].data && rows[0].data.length>0) {
       comics = rows[0].data;
       localStorage.setItem(LOCAL_KEY, JSON.stringify(comics));
       setSyncStatus('ok','Sincronizado');
-    } else { comics = buildDefault(); await syncToSupabase(); }
-  } catch {
-    const raw = localStorage.getItem(LOCAL_KEY);
-    comics = raw ? JSON.parse(raw) : buildDefault();
-    setSyncStatus('error','Local');
+    } else {
+      // No data in Supabase — push our local/default data up
+      setSyncStatus('saving','Guardando…');
+      await syncToSupabase();
+    }
+  } catch(e) {
+    console.warn('Supabase no disponible:', e);
+    setSyncStatus('error','Sin conexión — local');
   }
+  // Always render whatever we have
+  buildHeroFilters();
+  render();
 }
 
 let saveTimer = null;
@@ -1302,7 +1315,7 @@ function clearSearch(){
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();if(e.key==='Enter'&&document.getElementById('modal').classList.contains('open'))saveComic();});
 
-loadState().then(()=>{ buildHeroFilters(); render(); });
+loadState();
 </script>
 </body>
 </html>
