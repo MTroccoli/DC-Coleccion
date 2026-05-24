@@ -1,0 +1,24 @@
+{
+  "name": "DC Vault — Orden de Lectura",
+  "short_name": "DC Vault",
+  "description": "Guía personal de colección DC Comics con orden de lectura cronológico",
+  "start_url": "/dc-vault.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#181818",
+  "theme_color": "#181818",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
