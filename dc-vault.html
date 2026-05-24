@@ -315,7 +315,10 @@ main {
   position: relative;
 }
 .comic-card:active { background: var(--surface2); }
-.comic-card.is-read { opacity: 0.38; }
+.comic-card.is-read { opacity: 0.55; }
+.comic-card.is-read .card-title { opacity: 1; color: var(--muted); }
+.comic-card.is-read .card-color-bar { opacity: 0.4; }
+.comic-card.is-read .card-logo { opacity: 0.35; }
 
 .card-color-bar { width: 3px; flex-shrink: 0; }
 .card-pos {
