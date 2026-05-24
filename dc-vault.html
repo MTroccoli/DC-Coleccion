@@ -1117,6 +1117,7 @@ function render() {
                 ${starsHtml(c.stars)}
               </div>
               ${c.edition||c.volume?`<div class="card-sub">${[c.edition,c.volume].filter(Boolean).join(' · ')}</div>`:''}
+              ${c.writer||c.artist||c.year?`<div class="card-sub">${[c.writer?`✍ ${c.writer}`:'', c.artist?`✏ ${c.artist}`:'', c.year?`${c.year}`:''].filter(Boolean).join(' · ')}</div>`:''}
             </div>
             <div class="card-actions">
               <div class="action-group">
