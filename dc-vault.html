@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="DC Vault">
 <meta name="theme-color" content="#101010">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;500;600;700&family=Barlow:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;500;600;700&family=Barlow:ital,wght@0,300;0,400;1,300;1,400&family=Cinzel:wght@900&display=swap" rel="stylesheet">
 <style>
 /* ── TOKENS ── */
 :root {
@@ -31,10 +31,11 @@
   --yellow:   #c8a020;
   --green:    #2a8a50;
   --purple:   #7030a0;
-  --col-batman:  #7755cc;
+  --col-batman:  #c8a84b;
+  --col-superman:#2266bb;
   --col-flash:   #cc3322;
   --col-crisis:  #4477cc;
-  --col-jla:     #2266bb;
+  --col-jla:     #e8e8e0;
   --col-salvat:  #33aa66;
   --col-ww:      #cc6622;
   --col-gl:      #226622;
@@ -53,7 +54,7 @@ body {
   color: var(--text);
   min-height: 100vh;
   overflow-x: hidden;
-  padding-bottom: calc(var(--nav-h) + var(--safe-bot));
+  padding-bottom: calc(80px + var(--safe-bot));
 }
 
 /* ── HEADER / BANNER ── */
@@ -412,6 +413,37 @@ main {
 }
 .edit-btn:active { color: var(--gold); }
 
+/* hero filter second row */
+.filter-scroll-heroes {
+  display: flex; gap: 6px;
+  padding: 0 16px 10px;
+  overflow-x: auto;
+  scrollbar-width: none; -ms-overflow-style: none;
+  align-items: center;
+}
+.filter-scroll-heroes::-webkit-scrollbar { display: none; }
+.pill-hero {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 5px 10px 5px 6px; border-radius: 20px;
+  cursor: pointer; border: 1px solid var(--border2);
+  background: none; color: var(--muted);
+  transition: all 0.15s; white-space: nowrap;
+  flex-shrink: 0;
+  display: flex; align-items: center; gap: 5px;
+}
+.pill-hero:active { transform: scale(0.95); }
+.pill-hero.active { border-color: currentColor; opacity: 1; }
+.pill-hero svg { flex-shrink: 0; }
+
+/* card logo */
+.card-logo {
+  width: 32px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 2px;
+}
+
 /* search clear btn */
 .search-clear {
   background: none; border: none; color: var(--muted);
@@ -655,31 +687,13 @@ main {
       <button class="search-clear" id="search-clear" onclick="clearSearch()">✕</button>
     </div>
   </div>
+  <div class="filter-scroll-heroes" id="hero-filters"></div>
 </div>
 
 <!-- ── MAIN ── -->
 <main><div id="root"></div></main>
 
 <!-- ── FAB ── -->
-<button class="fab" id="btn-add">＋</button>
-
-<!-- ── BOTTOM NAV ── -->
-<nav class="bottom-nav">
-  <div class="nav-items">
-    <button class="nav-item active" onclick="setNav(this,'list')">
-      <span class="nav-icon">📚</span>
-      <span class="nav-label">Colección</span>
-    </button>
-    <button class="nav-item" onclick="setNav(this,'stats')">
-      <span class="nav-icon">📊</span>
-      <span class="nav-label">Stats</span>
-    </button>
-    <button class="nav-item" onclick="setNav(this,'search_nav')">
-      <span class="nav-icon">🔍</span>
-      <span class="nav-label">Buscar</span>
-    </button>
-  </div>
-</nav>
 
 <!-- ── SHEET MODAL ── -->
 <div class="sheet-bg" id="modal">
@@ -773,9 +787,74 @@ const ERAS = [
   { key:'EW', num:'∞',   name:'Elseworlds', desc:'Historias alternativas fuera del canon. Leer en cualquier momento.', reset:null, oMin:80, oMax:9999 },
 ];
 
-const CHAR_COLORS = { batman:'var(--col-batman)', flash:'var(--col-flash)', crisis:'var(--col-crisis)', jla:'var(--col-jla)', ww:'var(--col-ww)', titanes:'var(--col-titanes)', salvat:'var(--col-salvat)', other:'var(--col-other)' };
-const CHAR_LABELS = { batman:'Batman', flash:'Flash', crisis:'Crisis', jla:'JLA', ww:'WW', titanes:'Titanes', salvat:'Salvat', other:'Otro' };
+const CHAR_COLORS = { batman:'var(--col-batman)', superman:'var(--col-superman)', flash:'var(--col-flash)', crisis:'var(--col-crisis)', jla:'var(--col-jla)', ww:'var(--col-ww)', gl:'var(--col-gl)', titanes:'var(--col-titanes)', salvat:'var(--col-salvat)', other:'var(--col-other)' };
+const CHAR_LABELS = { batman:'Batman', superman:'Superman', flash:'Flash', crisis:'Crisis', jla:'JLA', ww:'Wonder Woman', gl:'Green Lantern', titanes:'Titanes', salvat:'Salvat', other:'Otro' };
 const LORE_LABELS = { canon:'Canon', tiein:'Tie-in', elseworlds:'Elseworlds', origen:'Origen' };
+
+// ── HERO LOGOS (inline SVG strings) ──────────────────────────
+const HERO_LOGOS = {
+  batman: (c,s=28)=>`<svg viewBox="0 0 120 80" width="${s*1.5}" height="${s}" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="60" cy="52" rx="14" ry="16" fill="${c}"/>
+    <path d="M46 50 C40 44 28 40 16 44 C22 40 24 34 22 28 C30 34 34 38 38 40 C34 32 32 24 36 18 C40 26 42 34 44 40 C46 34 48 28 46 22 C52 28 52 38 50 44 Z" fill="${c}"/>
+    <path d="M74 50 C80 44 92 40 104 44 C98 40 96 34 98 28 C90 34 86 38 82 40 C86 32 88 24 84 18 C80 26 78 34 76 40 C74 34 72 28 74 22 C68 28 68 38 70 44 Z" fill="${c}"/>
+    <polygon points="50,22 46,10 54,20" fill="${c}"/>
+    <polygon points="70,22 74,10 66,20" fill="${c}"/>
+    <ellipse cx="60" cy="36" rx="11" ry="10" fill="${c}"/>
+    <path d="M50 35 Q55 32 60 35 Q65 32 70 35 Q68 40 60 40 Q52 40 50 35Z" fill="#101010" opacity="0.45"/>
+  </svg>`,
+
+  superman: (c,s=28)=>`<svg viewBox="0 0 64 60" width="${s}" height="${s*0.94}" xmlns="http://www.w3.org/2000/svg">
+    <defs><clipPath id="sc-${s}"><polygon points="4,8 60,8 48,56 16,56"/></clipPath></defs>
+    <polygon points="4,8 60,8 48,56 16,56" fill="#0e2347" stroke="${c}" stroke-width="2"/>
+    <text x="32" y="50" font-family="'Cinzel',serif" font-size="46" font-weight="900" fill="${c}" text-anchor="middle" clip-path="url(#sc-${s})">S</text>
+    <polygon points="4,8 60,8 48,56 16,56" fill="none" stroke="${c}" stroke-width="1" opacity="0.4"/>
+  </svg>`,
+
+  flash: (c,s=28)=>`<svg viewBox="0 0 60 60" width="${s}" height="${s}" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="30" cy="30" r="27" fill="${c}" opacity="0.12" stroke="${c}" stroke-width="1.5"/>
+    <path d="M36 8 L20 32 L30 32 L24 52 L44 26 L33 26 Z" fill="${c}"/>
+  </svg>`,
+
+  jla: (c,s=28)=>`<svg viewBox="0 0 64 64" width="${s}" height="${s}" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="32" cy="32" r="28" fill="#1c1c1c" stroke="${c}" stroke-width="2"/>
+    <polygon points="32,8 33.2,12 37,12 34,14.5 35.2,18.5 32,16 28.8,18.5 30,14.5 27,12 30.8,12" fill="${c}" opacity="0.8"/>
+    <text x="32" y="46" font-family="'Bebas Neue',sans-serif" font-size="26" fill="${c}" text-anchor="middle" letter-spacing="2">JLA</text>
+  </svg>`,
+
+  ww: (c,s=28)=>`<svg viewBox="0 0 64 64" width="${s}" height="${s}" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="32,4 38.5,22 58,22 43,34 49,52 32,41 15,52 21,34 6,22 25.5,22" fill="${c}" opacity="0.15" stroke="${c}" stroke-width="1.8"/>
+    <text x="32" y="40" font-family="'Bebas Neue',sans-serif" font-size="20" fill="${c}" text-anchor="middle" letter-spacing="2">WW</text>
+  </svg>`,
+
+  gl: (c,s=28)=>`<svg viewBox="0 0 64 64" width="${s}" height="${s}" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="32" cy="32" r="27" fill="#0d2a0d" stroke="${c}" stroke-width="3"/>
+    <circle cx="32" cy="32" r="18" fill="none" stroke="${c}" stroke-width="2"/>
+    <circle cx="32" cy="32" r="8" fill="${c}" opacity="0.8"/>
+    <circle cx="32" cy="32" r="4" fill="#4aaa4a" opacity="0.9"/>
+  </svg>`,
+
+  titanes: (c,s=28)=>`<svg viewBox="0 0 60 60" width="${s}" height="${s}" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="30" cy="30" r="27" fill="none" stroke="${c}" stroke-width="1" opacity="0.3"/>
+    <rect x="8" y="10" width="44" height="10" rx="3" fill="${c}"/>
+    <rect x="24" y="20" width="12" height="32" rx="3" fill="${c}"/>
+  </svg>`,
+
+  crisis: (c,s=28)=>`<svg viewBox="0 0 60 60" width="${s}" height="${s}" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="30" cy="30" r="24" fill="none" stroke="${c}" stroke-width="1.5" stroke-dasharray="5 3" opacity="0.5"/>
+    <circle cx="30" cy="30" r="15" fill="none" stroke="${c}" stroke-width="1.2" opacity="0.6"/>
+    <path d="M30 8 L26 27 L32 27 L28 52" stroke="${c}" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <line x1="30" y1="8" x2="21" y2="3" stroke="${c}" stroke-width="1.5" opacity="0.55"/>
+    <line x1="30" y1="8" x2="39" y2="3" stroke="${c}" stroke-width="1.5" opacity="0.55"/>
+  </svg>`,
+
+  other: (c,s=28)=>`<svg viewBox="0 0 56 56" width="${s}" height="${s}" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="28,4 33,20 48,20 36,30 41,46 28,36 15,46 20,30 8,20 23,20" fill="none" stroke="${c}" stroke-width="1.5"/>
+    <circle cx="28" cy="28" r="5" fill="${c}" opacity="0.6"/>
+  </svg>`,
+};
+
+// hero filter chars list
+const HERO_CHARS = ['batman','superman','flash','jla','ww','gl','titanes','crisis','other'];
 
 const SALVAT_DATA = [
   [10,"JLA: Año Uno Parte 1","01 — Los Orígenes Post-Crisis","origen",4,"JLA: Year One #1-6","jla",2],
@@ -926,15 +1005,44 @@ async function syncToSupabase() {
 }
 
 // ── FILTERS ───────────────────────────────────────────────────
-let activeFilter='all', activeLore=null, searchQ='';
+let activeFilter='all', activeLore=null, activeChar=null, searchQ='';
 function getVisible() {
   let list = [...comics];
   if(activeFilter==='owned')   list = list.filter(c=>c.owned);
   if(activeFilter==='missing') list = list.filter(c=>!c.owned);
   if(activeFilter==='unread')  list = list.filter(c=>c.owned&&!c.read);
   if(activeLore)               list = list.filter(c=>c.lore===activeLore);
+  if(activeChar)               list = list.filter(c=>(c.char||'other')===activeChar);
   if(searchQ){ const q=searchQ.toLowerCase(); list=list.filter(c=>c.title.toLowerCase().includes(q)||(c.arc||'').toLowerCase().includes(q)); }
   return list.sort((a,b)=>a.order-b.order);
+}
+
+function buildHeroFilters() {
+  const container = document.getElementById('hero-filters');
+  const RAW_COLORS = {
+    batman:'#c8a84b', superman:'#2266bb', flash:'#cc3322', jla:'#e8e8e0',
+    ww:'#cc6622', gl:'#226622', titanes:'#aa4488', crisis:'#4477cc', other:'#5a5a56'
+  };
+  container.innerHTML = HERO_CHARS.map(ch => {
+    const col = RAW_COLORS[ch] || '#5a5a56';
+    const logo = HERO_LOGOS[ch] ? HERO_LOGOS[ch](col, 16) : '';
+    return `<button class="pill-hero" data-char="${ch}" style="color:${col};border-color:${col}44" onclick="toggleChar('${ch}')">
+      ${logo}<span>${CHAR_LABELS[ch]||ch}</span>
+    </button>`;
+  }).join('');
+}
+
+function toggleChar(ch) {
+  if(activeChar===ch){ activeChar=null; }
+  else { activeChar=ch; }
+  document.querySelectorAll('.pill-hero').forEach(b=>{
+    const isActive = b.dataset.char===activeChar;
+    const RAW_COLORS = {batman:'#c8a84b',superman:'#2266bb',flash:'#cc3322',jla:'#e8e8e0',ww:'#cc6622',gl:'#226622',titanes:'#aa4488',crisis:'#4477cc',other:'#5a5a56'};
+    const col = RAW_COLORS[b.dataset.char]||'#5a5a56';
+    b.style.background = isActive ? col+'28' : 'none';
+    b.style.borderColor = isActive ? col : col+'44';
+  });
+  render();
 }
 
 // ── RENDER ────────────────────────────────────────────────────
@@ -977,16 +1085,20 @@ function render() {
         <div class="card-list">`;
 
     items.forEach(c => {
-      const color = CHAR_COLORS[c.char||'other']||'var(--col-other)';
+      const ch = c.char||'other';
+      const RAW_COLORS = {batman:'#c8a84b',superman:'#2266bb',flash:'#cc3322',jla:'#e8e8e0',ww:'#cc6622',gl:'#226622',titanes:'#aa4488',crisis:'#4477cc',salvat:'#33aa66',other:'#5a5a56'};
+      const color = RAW_COLORS[ch] || '#5a5a56';
+      const cssColor = CHAR_COLORS[ch] || 'var(--col-other)';
+      const logo = HERO_LOGOS[ch] ? HERO_LOGOS[ch](color, 26) : '';
       html += `
         <div class="swipe-wrap" data-id="${c.id}" id="sw-${c.id}">
           <div class="comic-card ${c.read?'is-read':''}" data-id="${c.id}">
             <div class="card-color-bar" style="background:${color}"></div>
             <div class="card-pos">${pos++}</div>
+            <div class="card-logo">${logo}</div>
             <div class="card-body">
               <div class="card-title ${c.read?'crossed':''}">${c.title}</div>
               <div class="card-tags">
-                <span class="char-badge" style="background:${color}22;color:${color};border:1px solid ${color}44">${CHAR_LABELS[c.char||'other']||'Otro'}</span>
                 <span class="lore-tag lore-${c.lore}">${LORE_LABELS[c.lore]}</span>
                 ${c.salvat?`<span class="salvat-badge">#${c.salvat}</span>`:''}
                 ${starsHtml(c.stars)}
@@ -1066,13 +1178,6 @@ function confirmDelete(id) { comics=comics.filter(x=>x.id!==id); saveState();ren
 // ── ACTIONS ───────────────────────────────────────────────────
 function toggleOwned(id){ const c=comics.find(x=>x.id===id); if(c){c.owned=!c.owned;if(!c.owned)c.read=false;saveState();render();} }
 function toggleRead(id){  const c=comics.find(x=>x.id===id); if(c){c.read=!c.read;saveState();render();} }
-
-// ── NAV ───────────────────────────────────────────────────────
-function setNav(el, view) {
-  document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
-  el.classList.add('active');
-  if(view==='search_nav') { document.getElementById('search').focus(); }
-}
 
 // ── MODAL ─────────────────────────────────────────────────────
 let editId=null;
@@ -1197,7 +1302,7 @@ function clearSearch(){
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();if(e.key==='Enter'&&document.getElementById('modal').classList.contains('open'))saveComic();});
 
-loadState().then(()=>render());
+loadState().then(()=>{ buildHeroFilters(); render(); });
 </script>
 </body>
 </html>
