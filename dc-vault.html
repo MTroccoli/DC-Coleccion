@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>DC VAULT — Orden de Lectura</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;500;600;700&family=Barlow:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -339,10 +339,13 @@ main { max-width: 860px; margin: 0 auto; padding: 40px 24px 100px; }
     </div>
     <div id="ai-feedback" class="ai-feedback" style="display:none"></div>
     <div class="fg">
+      <div class="fl"><label>Guionista</label><input id="f-writer" type="text" placeholder="Frank Miller, Geoff Johns…"></div>
+      <div class="fl"><label>Dibujante</label><input id="f-artist" type="text" placeholder="Jim Lee, Neal Adams…"></div>
+      <div class="fl"><label>Año de lanzamiento</label><input id="f-year" type="number" placeholder="1986" min="1938" max="2099"></div>
       <div class="fl"><label>Volumen / Issues</label><input id="f-volume" type="text" placeholder="Vol.1 / #1-6"></div>
       <div class="fl"><label>Editorial / Edición</label><input id="f-edition" type="text" placeholder="Salvat, ECC, Ovni…"></div>
       <div class="fl"><label>Era / Arco narrativo</label><input id="f-arc" type="text" placeholder="02 — La Era Clásica…"></div>
-      <div class="fl"><label>Posición en línea de tiempo</label><input id="f-order" type="number" placeholder="ej: 14.5" min="0" step="0.5"></div>
+      <div class="fl"><label>Posición en línea de tiempo</label><input id="f-order" type="number" placeholder="ej: 14.5" min="-99" step="0.5"></div>
       <div class="fl">
         <label>Tipo de Lore</label>
         <select id="f-lore">
@@ -397,6 +400,9 @@ main { max-width: 860px; margin: 0 auto; padding: 40px 24px 100px; }
 <script>
 // ── ERAS ──────────────────────────────────────────────────────
 const ERAS = [
+  { key:'EP', num:'PRE', name:'La Era Pre-Crisis',
+    desc:'Tomos de la Edad de Plata y Bronce del universo DC original, antes del gran reseteo de 1985. No es obligatorio leerlos primero, pero dan contexto invaluable a Crisis en Tierras Infinitas y explican por qué ese evento fue tan significativo.',
+    reset:null, oMin:-99, oMax:0 },
   { key:'E0', num:'00', name:'El Gran Reseteo — Crisis en Tierras Infinitas',
     desc:'Lee esto primero. Crisis en Tierras Infinitas destruye y reconstruye el multiverso DC. Todo lo que viene después ocurre en este nuevo universo. Es el punto de partida obligatorio.',
     reset:'⚡ Evento de reseteo — define todo lo que viene después', oMin:0, oMax:1 },
@@ -686,8 +692,10 @@ function render() {
               <div class="card-meta">
                 ${c.edition?`<span class="card-edition">${c.edition}</span>`:''}
                 ${c.volume?`<span class="card-edition">· ${c.volume}</span>`:''}
+                ${c.year?`<span class="card-edition">· ${c.year}</span>`:''}
                 ${starsHtml(c.stars)}
               </div>
+              ${(c.writer||c.artist)?`<div class="card-desc">${[c.writer?`✍ ${c.writer}`:'', c.artist?`✏ ${c.artist}`:''].filter(Boolean).join(' · ')}</div>`:''}
               ${c.issue?`<div class="card-desc">${c.issue}</div>`:''}
             </div>
             <div class="card-controls">
@@ -786,7 +794,7 @@ function deleteComic(id){ confirmDelete(id); }
 // ── MODAL ─────────────────────────────────────────────────────
 let editId=null;
 function resetForm(){
-  ['f-title','f-volume','f-edition','f-arc','f-order','f-salvat'].forEach(id=>document.getElementById(id).value='');
+  ['f-title','f-volume','f-edition','f-arc','f-order','f-salvat','f-writer','f-artist','f-year'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f-lore').value='canon';
   document.getElementById('f-stars').value='4';
   document.getElementById('f-char').value='batman';
@@ -805,6 +813,9 @@ function openEdit(id){
   editId=id; const c=comics.find(x=>x.id===id);
   document.getElementById('modal-heading').textContent='Editar tomo';
   document.getElementById('f-title').value=c.title;
+  document.getElementById('f-writer').value=c.writer||'';
+  document.getElementById('f-artist').value=c.artist||'';
+  document.getElementById('f-year').value=c.year||'';
   document.getElementById('f-volume').value=c.volume||'';
   document.getElementById('f-edition').value=c.edition||'';
   document.getElementById('f-arc').value=c.arc||'';
@@ -824,7 +835,11 @@ function saveComic(){
   const title=document.getElementById('f-title').value.trim();
   if(!title){document.getElementById('f-title').focus();return;}
   const data={
-    title, volume:document.getElementById('f-volume').value.trim(),
+    title,
+    writer:document.getElementById('f-writer').value.trim(),
+    artist:document.getElementById('f-artist').value.trim(),
+    year:parseInt(document.getElementById('f-year').value)||null,
+    volume:document.getElementById('f-volume').value.trim(),
     edition:document.getElementById('f-edition').value.trim(),
     arc:document.getElementById('f-arc').value.trim(),
     order:parseFloat(document.getElementById('f-order').value)||999,
@@ -851,6 +866,7 @@ async function doAutocomplete(){
   const prompt=`Eres un experto en DC Comics. El usuario quiere añadir: "${title}"
 
 Usa estas eras para ubicarlo en la línea de tiempo de lectura recomendada:
+- ERA PRE (order -99 a 0): Era Pre-Crisis, Edad de Plata y Bronce (ej: Juicio de Barry Allen, GL/GA Héroes Errantes en su versión original)
 - ERA 00 (order 0-1): Crisis en Tierras Infinitas (reseteo del universo)
 - ERA 01 (order 1-10): Orígenes post-Crisis (Batman Año Uno, Superman, WW, JLA Año Uno)
 - ERA 02 (order 10-25): Era Clásica 80s-90s (Muerte de Superman, Knightfall, Largo Halloween)
@@ -860,7 +876,7 @@ Usa estas eras para ubicarlo en la línea de tiempo de lectura recomendada:
 - ELSEWORLDS (order 80+): Historias alternativas (Dark Knight Returns, etc.)
 
 Responde SOLO con JSON válido sin markdown:
-{"volume":"issues o vol","arc":"nombre de era exacto ej: 02 — La Era Clásica","lore":"canon|tiein|elseworlds|origen","stars":1-5,"order":número decimal en rango correcto,"char":"batman|jla|flash|crisis|ww|titanes|other","reason":"explicación breve en español"}`;
+{"volume":"issues o vol","arc":"nombre de era exacto ej: 02 — La Era Clásica","lore":"canon|tiein|elseworlds|origen","stars":1-5,"order":número decimal en rango correcto,"char":"batman|jla|flash|crisis|ww|titanes|other","writer":"guionista principal","artist":"dibujante principal","year":año de publicación original como número,"reason":"explicación breve en español"}`;
 
   try{
     const res=await fetch(VERCEL_PROXY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:400,messages:[{role:'user',content:prompt}]})});
@@ -872,6 +888,9 @@ Responde SOLO con JSON válido sin markdown:
     if(info.stars)  document.getElementById('f-stars').value=String(info.stars);
     if(info.order)  document.getElementById('f-order').value=info.order;
     if(info.char)   document.getElementById('f-char').value=info.char;
+    if(info.writer) document.getElementById('f-writer').value=info.writer;
+    if(info.artist) document.getElementById('f-artist').value=info.artist;
+    if(info.year)   document.getElementById('f-year').value=info.year;
     const em={canon:'🔴',tiein:'🟡',elseworlds:'🟣',origen:'🟢'};
     fb.style.display='block';
     fb.innerHTML=`<strong>${em[info.lore]||'●'} ${(info.lore||'').toUpperCase()}</strong> · Posición ${info.order}<br><span style="opacity:0.75">${info.reason||''}</span>`;
