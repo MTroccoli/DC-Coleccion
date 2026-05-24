@@ -4,6 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>DC VAULT — Orden de Lectura</title>
+
+<!-- PWA / App Icon -->
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="DC Vault">
+<meta name="theme-color" content="#181818">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@300;400;500;600;700&family=Barlow:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -42,14 +51,15 @@ body { font-family: 'Barlow', sans-serif; background: var(--bg); color: var(--te
   padding: 48px 32px 40px;
   position: relative; overflow: hidden;
 }
-.hero::before {
-  content: 'DC';
-  position: absolute; right: -10px; top: -20px;
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: clamp(120px, 25vw, 240px);
-  color: #ffffff06; line-height: 1; pointer-events: none;
-}
 .hero-sup { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; letter-spacing: 0.35em; color: var(--muted); text-transform: uppercase; margin-bottom: 12px; }
+.hero-logo-wrap {
+  display: flex; justify-content: center; align-items: center;
+  margin: 8px 0 16px;
+}
+.hero-logo {
+  max-width: 320px; width: 80%; height: auto;
+  filter: drop-shadow(0 4px 20px rgba(200, 168, 75, 0.15));
+}
 .hero-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(52px, 10vw, 88px); line-height: 0.92; letter-spacing: 0.02em; color: var(--text); }
 .hero-title span { color: var(--gold); display: block; }
 .hero-sub { font-size: 14px; font-style: italic; color: var(--muted); margin-top: 16px; max-width: 420px; line-height: 1.6; }
@@ -279,7 +289,9 @@ main { max-width: 860px; margin: 0 auto; padding: 40px 24px 100px; }
     <button class="btn btn-gold" id="btn-add">＋ Añadir tomo</button>
   </div>
   <div class="hero-sup">Guía de colección personal</div>
-  <div class="hero-title">Orden de lectura<br><span>Universo DC</span></div>
+  <div class="hero-logo-wrap">
+    <img src="icon.png" alt="DC Vault" class="hero-logo">
+  </div>
   <div class="hero-sub">Desde Crisis en Tierras Infinitas hasta el New 52 — incluyendo eventos mayores y arcos esenciales del lore.</div>
   <div class="hero-stats">
     <div class="hstat"><div class="hstat-n" id="s-total">0</div><div class="hstat-l">Tomos</div></div>
