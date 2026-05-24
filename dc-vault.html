@@ -448,10 +448,59 @@ main {
   padding: 0 2px;
 }
 
-/* search clear btn */
+/* search FAB */
+.fab-search {
+  position: fixed;
+  bottom: calc(var(--safe-bot) + 20px);
+  right: 20px;
+  width: 52px; height: 52px; border-radius: 50%;
+  background: var(--surface2);
+  color: var(--gold);
+  font-size: 22px; line-height: 1;
+  border: 1px solid var(--border2);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.4);
+  transition: all 0.2s;
+  z-index: 99;
+}
+.fab-search:active { transform: scale(0.92); }
+.fab-search.active { background: var(--gold); color: #111; border-color: var(--gold); }
+
+/* search overlay */
+.search-overlay {
+  position: fixed;
+  bottom: calc(var(--safe-bot) + 84px);
+  right: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 16px;
+  padding: 12px 16px;
+  display: flex; align-items: center; gap: 10px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  z-index: 98;
+  transform: scale(0.8) translateY(20px);
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.2s cubic-bezier(.4,0,.2,1);
+  transform-origin: bottom right;
+  width: min(320px, calc(100vw - 40px));
+}
+.search-overlay.open {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+.search-overlay span { color: var(--muted); font-size: 16px; flex-shrink: 0; }
+.search-overlay input {
+  flex: 1; background: none; border: none; outline: none;
+  font-family: 'Barlow', sans-serif; font-size: 15px;
+  color: var(--text);
+}
+.search-overlay input::placeholder { color: var(--dim); }
 .search-clear {
   background: none; border: none; color: var(--muted);
-  font-size: 14px; cursor: pointer; padding: 0;
+  font-size: 16px; cursor: pointer; padding: 0;
   line-height: 1; display: none; flex-shrink: 0;
 }
 .search-clear.visible { display: block; }
@@ -494,8 +543,8 @@ main {
 /* FAB — add button */
 .fab {
   position: fixed;
-  bottom: calc(var(--nav-h) + var(--safe-bot) + 16px);
-  right: 20px;
+  bottom: calc(var(--safe-bot) + 84px);
+  left: 20px;
   width: 52px; height: 52px; border-radius: 50%;
   background: var(--gold);
   color: #111;
@@ -685,11 +734,6 @@ main {
     <button class="pill pill-tiein" data-lore="tiein">Tie-in</button>
     <button class="pill pill-elseworlds" data-lore="elseworlds">Elseworlds</button>
     <button class="pill pill-origen" data-lore="origen">Origen</button>
-    <div class="search-pill">
-      <span>⌕</span>
-      <input type="text" id="search" placeholder="Buscar…">
-      <button class="search-clear" id="search-clear" onclick="clearSearch()">✕</button>
-    </div>
   </div>
   <div class="filter-scroll-heroes" id="hero-filters"></div>
 </div>
@@ -699,6 +743,14 @@ main {
 
 <!-- ── FAB ── -->
 <button class="fab" id="btn-add">＋</button>
+
+<!-- ── SEARCH FAB ── -->
+<div class="search-overlay" id="search-overlay">
+  <span>⌕</span>
+  <input type="text" id="search" placeholder="Buscar tomo…" autocomplete="off">
+  <button class="search-clear" id="search-clear" onclick="clearSearch()">✕</button>
+</div>
+<button class="fab-search" id="btn-search" onclick="toggleSearch()">⌕</button>
 <div class="sheet-bg" id="modal">
   <div class="sheet" id="sheet">
     <div class="sheet-handle"></div>
@@ -958,6 +1010,25 @@ function buildSalvat() {
 }
 function buildDefault() { return [...buildSalvat(), ...EXTRA.map(e=>({...e,owned:true,read:false}))]; }
 
+// ── MIGRATE legacy char tags ───────────────────────────────────
+// Fixes comics saved before superman/gl existed as char keys
+function migrateChars(list) {
+  const SUPERMAN_KEYWORDS = ['superman','hombre de acero','krypton','brainiac','luthor','shazam','supergirl','acero','legado','tierra uno'];
+  const GL_KEYWORDS = ['green lantern','linterna verde','lanterna','hal jordan','sinestro','oa '];
+  let changed = false;
+  list.forEach(c => {
+    const t = (c.title||'').toLowerCase();
+    if(c.char === 'jla' || c.char === 'other') {
+      if(GL_KEYWORDS.some(k => t.includes(k))) {
+        c.char = 'gl'; changed = true;
+      } else if(c.char === 'jla' && SUPERMAN_KEYWORDS.some(k => t.includes(k))) {
+        c.char = 'superman'; changed = true;
+      }
+    }
+  });
+  return changed;
+}
+
 // ── SYNC ──────────────────────────────────────────────────────
 function setSyncStatus(state, msg) {
   const el = document.getElementById('sync-status');
@@ -971,33 +1042,38 @@ function setSyncStatus(state, msg) {
 
 async function loadState() {
   setSyncStatus('loading','Cargando…');
-  // Always try localStorage first as immediate fallback
   const raw = localStorage.getItem(LOCAL_KEY);
   if(raw) {
     try { comics = JSON.parse(raw); } catch(e) { comics = buildDefault(); }
   } else {
     comics = buildDefault();
   }
-  // Then try Supabase to get fresher data
   try {
     const res = await fetch(SB.endpoint, { headers: SB.headers });
     if(!res.ok) throw new Error('http '+res.status);
     const rows = await res.json();
     if(rows.length>0 && rows[0].data && rows[0].data.length>0) {
       comics = rows[0].data;
+      const migrated = migrateChars(comics);
       localStorage.setItem(LOCAL_KEY, JSON.stringify(comics));
-      setSyncStatus('ok','Sincronizado');
+      if(migrated) {
+        setSyncStatus('saving','Migrando…');
+        await syncToSupabase();
+      } else {
+        setSyncStatus('ok','Sincronizado');
+      }
     } else {
-      // No data in Supabase — push our local/default data up
       setSyncStatus('saving','Guardando…');
       await syncToSupabase();
     }
   } catch(e) {
     console.warn('Supabase no disponible:', e);
+    migrateChars(comics);
     setSyncStatus('error','Sin conexión — local');
   }
-  // Always render whatever we have
   buildHeroFilters();
+  render();
+}
   render();
 }
 
@@ -1307,6 +1383,21 @@ document.querySelectorAll('[data-lore]').forEach(btn=>btn.addEventListener('clic
   else{document.querySelectorAll('[data-lore]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');activeLore=t;}
   render();
 }));
+function toggleSearch() {
+  const overlay = document.getElementById('search-overlay');
+  const btn = document.getElementById('btn-search');
+  const isOpen = overlay.classList.contains('open');
+  if(isOpen) {
+    overlay.classList.remove('open');
+    btn.classList.remove('active');
+    clearSearch();
+  } else {
+    overlay.classList.add('open');
+    btn.classList.add('active');
+    setTimeout(()=>document.getElementById('search').focus(), 200);
+  }
+}
+
 document.getElementById('search').addEventListener('input',e=>{
   searchQ=e.target.value;
   document.getElementById('search-clear').classList.toggle('visible', searchQ.length>0);
@@ -1314,8 +1405,10 @@ document.getElementById('search').addEventListener('input',e=>{
 });
 function clearSearch(){
   searchQ='';
-  document.getElementById('search').value='';
-  document.getElementById('search-clear').classList.remove('visible');
+  const s = document.getElementById('search');
+  if(s) s.value='';
+  const sc = document.getElementById('search-clear');
+  if(sc) sc.classList.remove('visible');
   render();
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();if(e.key==='Enter'&&document.getElementById('modal').classList.contains('open'))saveComic();});
