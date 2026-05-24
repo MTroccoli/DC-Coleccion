@@ -79,11 +79,11 @@ body {
 }
 .header-status-bar {
   position: absolute; top: 0; left: 0; right: 0;
-  height: calc(var(--safe-top) + 14px);
+  min-height: calc(var(--safe-top) + 30px);
   background: rgba(8,8,16,0.4);
   backdrop-filter: blur(8px);
   display: flex; align-items: flex-end;
-  padding: 0 20px 4px;
+  padding: calc(var(--safe-top) + 6px) 20px 7px;
   gap: 8px;
   z-index: 10;
 }
@@ -91,14 +91,14 @@ body {
   font-family: 'Bebas Neue', sans-serif;
   font-size: 13px; letter-spacing: 0.25em;
   color: var(--gold); opacity: 0.7;
-  padding-top: var(--safe-top);
+  line-height: 1;
 }
 .status-sync {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 10px; letter-spacing: 0.1em;
   color: var(--muted);
   margin-left: auto;
-  padding-top: var(--safe-top);
+  line-height: 1;
 }
 
 .header-content {
@@ -294,23 +294,17 @@ main {
 .card-list { display: flex; flex-direction: column; gap: 1px; padding-bottom: 4px; }
 
 .swipe-wrap { position: relative; overflow: hidden; }
-.delete-bg {
-  position: absolute; right: 0; top: 0; bottom: 0;
-  width: 72px; background: var(--red);
-  display: flex; align-items: center; justify-content: center;
-  color: #fff; font-size: 22px;
-}
 .delete-confirm {
   display: none; align-items: center; justify-content: space-between;
-  background: var(--red); padding: 10px 16px;
+  background: var(--surface2); border-top: 1px solid var(--border2);
+  padding: 10px 16px;
   font-family: 'Barlow Condensed', sans-serif;
-  font-size: 13px; letter-spacing: 0.06em; color: #fff;
+  font-size: 13px; letter-spacing: 0.06em; color: var(--muted);
 }
 .swipe-wrap.confirm-delete .delete-confirm { display: flex; }
-.swipe-wrap.confirm-delete .comic-card { pointer-events: none; }
-.swipe-wrap.confirm-delete .comic-card { background: #cc333315; }
-.btn-confirm-del { background: #fff; color: var(--red); border: none; padding: 5px 14px; border-radius: 4px; font-family: 'Bebas Neue', sans-serif; font-size: 14px; cursor: pointer; }
-.btn-cancel-del  { background: none; border: 1px solid #ffffff55; color: #fff; padding: 5px 14px; border-radius: 4px; font-family: 'Bebas Neue', sans-serif; font-size: 14px; cursor: pointer; }
+.swipe-wrap.confirm-delete .comic-card { pointer-events: none; opacity: 0.5; }
+.btn-confirm-del { background: var(--red); color: #fff; border: none; padding: 6px 16px; border-radius: 6px; font-family: 'Bebas Neue', sans-serif; font-size: 14px; cursor: pointer; letter-spacing: 0.06em; }
+.btn-cancel-del  { background: none; border: 1px solid var(--border2); color: var(--muted); padding: 6px 14px; border-radius: 6px; font-family: 'Bebas Neue', sans-serif; font-size: 14px; cursor: pointer; letter-spacing: 0.06em; }
 
 .comic-card {
   background: var(--surface);
@@ -375,8 +369,18 @@ main {
   flex-shrink: 0;
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  gap: 10px;
+  gap: 6px;
   padding: 10px 14px 10px 8px;
+}
+.action-group {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 3px;
+}
+.action-lbl {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 7px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--dim);
+  line-height: 1;
 }
 .dot-owned {
   width: 18px; height: 18px; border-radius: 50%;
@@ -387,7 +391,7 @@ main {
 .dot-owned.yes { background: var(--gold); border-color: var(--gold); box-shadow: 0 0 8px rgba(200,168,75,0.4); }
 
 .toggle-read {
-  width: 38px; height: 22px; border-radius: 11px;
+  width: 34px; height: 20px; border-radius: 10px;
   background: var(--surface3); border: 1px solid var(--border2);
   cursor: pointer; position: relative; display: block;
   transition: all 0.2s; flex-shrink: 0;
@@ -395,11 +399,11 @@ main {
 .toggle-read::after {
   content: ''; position: absolute;
   top: 3px; left: 3px;
-  width: 14px; height: 14px; border-radius: 50%;
+  width: 12px; height: 12px; border-radius: 50%;
   background: var(--dim); transition: all 0.2s;
 }
 .toggle-read.yes { background: #2a8a5028; border-color: var(--green); }
-.toggle-read.yes::after { left: 19px; background: var(--green); }
+.toggle-read.yes::after { left: 17px; background: var(--green); }
 
 .edit-btn {
   background: none; border: none; color: var(--dim);
@@ -407,6 +411,14 @@ main {
   transition: color 0.15s;
 }
 .edit-btn:active { color: var(--gold); }
+
+/* search clear btn */
+.search-clear {
+  background: none; border: none; color: var(--muted);
+  font-size: 14px; cursor: pointer; padding: 0;
+  line-height: 1; display: none; flex-shrink: 0;
+}
+.search-clear.visible { display: block; }
 
 /* ── BOTTOM NAV ── */
 .bottom-nav {
@@ -640,6 +652,7 @@ main {
     <div class="search-pill">
       <span>⌕</span>
       <input type="text" id="search" placeholder="Buscar…">
+      <button class="search-clear" id="search-clear" onclick="clearSearch()">✕</button>
     </div>
   </div>
 </div>
@@ -967,7 +980,6 @@ function render() {
       const color = CHAR_COLORS[c.char||'other']||'var(--col-other)';
       html += `
         <div class="swipe-wrap" data-id="${c.id}" id="sw-${c.id}">
-          <div class="delete-bg">🗑</div>
           <div class="comic-card ${c.read?'is-read':''}" data-id="${c.id}">
             <div class="card-color-bar" style="background:${color}"></div>
             <div class="card-pos">${pos++}</div>
@@ -982,16 +994,22 @@ function render() {
               ${c.edition||c.volume?`<div class="card-sub">${[c.edition,c.volume].filter(Boolean).join(' · ')}</div>`:''}
             </div>
             <div class="card-actions">
-              <span class="dot-owned ${c.owned?'yes':''}" onclick="toggleOwned('${c.id}')"></span>
-              <span class="toggle-read ${c.read?'yes':''}" onclick="toggleRead('${c.id}')"></span>
+              <div class="action-group">
+                <span class="dot-owned ${c.owned?'yes':''}" onclick="toggleOwned('${c.id}')"></span>
+                <span class="action-lbl">Tengo</span>
+              </div>
+              <div class="action-group">
+                <span class="toggle-read ${c.read?'yes':''}" onclick="toggleRead('${c.id}')"></span>
+                <span class="action-lbl">Leído</span>
+              </div>
               <button class="edit-btn" onclick="openEdit('${c.id}')">✏</button>
             </div>
           </div>
           <div class="delete-confirm">
-            <span>¿Eliminar?</span>
+            <span>¿Eliminar este tomo?</span>
             <div style="display:flex;gap:8px">
               <button class="btn-cancel-del" onclick="cancelDelete('${c.id}')">No</button>
-              <button class="btn-confirm-del" onclick="confirmDelete('${c.id}')">Sí</button>
+              <button class="btn-confirm-del" onclick="confirmDelete('${c.id}')">Eliminar</button>
             </div>
           </div>
         </div>`;
@@ -1166,7 +1184,17 @@ document.querySelectorAll('[data-lore]').forEach(btn=>btn.addEventListener('clic
   else{document.querySelectorAll('[data-lore]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');activeLore=t;}
   render();
 }));
-document.getElementById('search').addEventListener('input',e=>{searchQ=e.target.value;render();});
+document.getElementById('search').addEventListener('input',e=>{
+  searchQ=e.target.value;
+  document.getElementById('search-clear').classList.toggle('visible', searchQ.length>0);
+  render();
+});
+function clearSearch(){
+  searchQ='';
+  document.getElementById('search').value='';
+  document.getElementById('search-clear').classList.remove('visible');
+  render();
+}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();if(e.key==='Enter'&&document.getElementById('modal').classList.contains('open'))saveComic();});
 
 loadState().then(()=>render());
