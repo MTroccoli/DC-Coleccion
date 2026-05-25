@@ -1011,19 +1011,36 @@ function buildSalvat() {
 function buildDefault() { return [...buildSalvat(), ...EXTRA.map(e=>({...e,owned:true,read:false}))]; }
 
 // ── MIGRATE legacy char tags ───────────────────────────────────
-// Fixes comics saved before superman/gl existed as char keys
 function migrateChars(list) {
-  const SUPERMAN_KEYWORDS = ['superman','hombre de acero','krypton','brainiac','luthor','shazam','supergirl','acero','legado','tierra uno'];
-  const GL_KEYWORDS = ['green lantern','linterna verde','lanterna','hal jordan','sinestro','oa '];
+  // Exact IDs that need fixing based on actual Supabase data
+  const FIX = {
+    'salvat-6':  'gl',        // Green Lantern: Origen Secreto
+    'salvat-56': 'gl',        // Green Lantern/GA: Héroes Errantes
+    'salvat-39': 'superman',  // Superman: Origen Secreto
+    'salvat-18': 'superman',  // Superman: La Muerte de Superman
+    'salvat-31': 'superman',  // Superman: Brainiac
+    'salvat-5':  'superman',  // Superman/Batman: Enemigos Públicos
+    'salvat-24': 'superman',  // Superman/Batman: Supergirl
+    'salvat-12': 'superman',  // Superman/Shazam: Primer Trueno
+    'salvat-54': 'superman',  // Superman: Legado P.1
+    'salvat-55': 'superman',  // Superman: Legado P.2
+    'salvat-22': 'superman',  // Lex Luthor: Hombre de Acero
+    'salvat-3':  'superman',  // Superman: Tierra Uno P.1
+    'salvat-13': 'superman',  // Superman: Tierra Uno P.2
+    'salvat-17': 'jla',       // JLA: Tierra 2 — keep as jla (team story)
+    'salvat-30': 'jla',       // JLA: El Clavo — keep as jla
+    'salvat-48': 'jla',       // JLA: Justicia P.1 — keep as jla
+    'salvat-49': 'jla',       // JLA: Justicia P.2 — keep as jla
+    'salvat-52': 'jla',       // JLA: Nuevo Orden Mundial — keep as jla
+    'salvat-4':  'jla',       // JLA: Torre de Babel — keep as jla
+    'manual-1779244741837': 'jla', // crisis de identidad — keep jla
+    'manual-1779275944454': 'gl',  // Blackest Night
+  };
   let changed = false;
   list.forEach(c => {
-    const t = (c.title||'').toLowerCase();
-    if(c.char === 'jla' || c.char === 'other') {
-      if(GL_KEYWORDS.some(k => t.includes(k))) {
-        c.char = 'gl'; changed = true;
-      } else if(c.char === 'jla' && SUPERMAN_KEYWORDS.some(k => t.includes(k))) {
-        c.char = 'superman'; changed = true;
-      }
+    if(FIX[c.id] !== undefined && c.char !== FIX[c.id]) {
+      c.char = FIX[c.id];
+      changed = true;
     }
   });
   return changed;
@@ -1070,7 +1087,6 @@ async function loadState() {
         setSyncStatus('ok','Sincronizado');
       }
     } else {
-      // Supabase vacío — subir datos locales
       migrateChars(comics);
       setSyncStatus('saving','Guardando…');
       await syncToSupabase();
@@ -1081,8 +1097,6 @@ async function loadState() {
     render();
     setSyncStatus('error','Sin conexión — local');
   }
-}
-  render();
 }
 
 let saveTimer = null;
