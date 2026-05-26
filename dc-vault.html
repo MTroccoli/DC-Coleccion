@@ -776,7 +776,11 @@ main {
         <div class="fl"><label>Volumen / Issues</label><input id="f-volume" type="text" placeholder="Vol.1 / #1-6"></div>
         <div class="fl"><label>Editorial</label><input id="f-edition" type="text" placeholder="Salvat, ECC…"></div>
         <div class="fl"><label>Era / Arco</label><input id="f-arc" type="text" placeholder="02 — La Era Clásica…"></div>
-        <div class="fl"><label>Posición</label><input id="f-order" type="number" placeholder="14.5" min="-99" step="0.5"></div>
+        <div class="fl fg-full" id="f-order-wrap">
+          <label>Posición en línea de tiempo</label>
+          <input id="f-order" type="number" placeholder="14.5" min="-99" step="0.5">
+          <div id="order-context" style="display:none;margin-top:6px;border-radius:6px;overflow:hidden;border:1px solid var(--border2);font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:0.04em;"></div>
+        </div>
         <div class="fl">
           <label>Lore</label>
           <select id="f-lore">
@@ -1305,6 +1309,10 @@ function resetForm(){
   document.getElementById('f-owned').checked=true;
   document.getElementById('f-read').checked=false;
   document.getElementById('ai-feedback').style.display='none';
+  const ctx=document.getElementById('order-context');
+  if(ctx) ctx.style.display='none';
+  const inp=document.getElementById('f-order');
+  if(inp){ inp.style.borderColor=''; inp.style.boxShadow=''; }
 }
 function openAdd(){
   editId=null; resetForm();
@@ -1382,10 +1390,71 @@ async function doAutocomplete(){
     const em={canon:'🔴',tiein:'🟡',elseworlds:'🟣',origen:'🟢'};
     fb.style.display='block';
     fb.innerHTML=`<strong>${em[info.lore]||'●'} ${(info.lore||'').toUpperCase()}</strong> · Posición ${info.order}<br><span style="opacity:0.75">${info.reason||''}</span>`;
+    if(info.order) showOrderContext(info.order);
   }catch(e){
     fb.style.display='block';fb.className='ai-feedback error';
     fb.textContent='No se pudo autocompletar. Rellena los campos manualmente.';
   }finally{btn.disabled=false;btn.classList.remove('loading');lbl.textContent='Auto';}
+}
+
+// ── ORDER CONTEXT ──────────────────────────────────────────────
+function showOrderContext(order) {
+  const ctx = document.getElementById('order-context');
+  const inp = document.getElementById('f-order');
+  if(!ctx || !inp) return;
+
+  const sorted = [...comics].sort((a,b)=>a.order-b.order);
+  const currentId = editId; // null when adding
+  const filtered = sorted.filter(c => c.id !== currentId);
+
+  const prev = [...filtered].reverse().find(c => c.order <= order);
+  const next = filtered.find(c => c.order > order);
+
+  const rowStyle = `display:flex;align-items:center;gap:10px;padding:9px 12px;`;
+  const labelStyle = `font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);flex-shrink:0;width:48px;`;
+  const titleStyle = `flex:1;color:var(--text);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`;
+  const numStyle = `font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--dim);flex-shrink:0;width:36px;text-align:right;`;
+  const newStyle = `display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--golddim);border-top:1px solid var(--border);border-bottom:1px solid var(--border);`;
+  const newTitleStyle = `flex:1;color:var(--gold);font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`;
+  const currentTitle = document.getElementById('f-title').value.trim() || '— nuevo tomo —';
+
+  let html = '';
+  if(prev) {
+    const color = CHAR_COLORS[prev.char||'other']||'var(--col-other)';
+    html += `<div style="${rowStyle}background:var(--surface2);">
+      <span style="${labelStyle}">Antes</span>
+      <span style="width:3px;height:32px;border-radius:2px;background:${color};flex-shrink:0;"></span>
+      <span style="${numStyle}">${prev.order}</span>
+      <span style="${titleStyle}">${prev.title}</span>
+    </div>`;
+  }
+  html += `<div style="${newStyle}">
+    <span style="${labelStyle};color:var(--gold);">Nuevo</span>
+    <span style="width:3px;height:32px;border-radius:2px;background:var(--gold);flex-shrink:0;"></span>
+    <span style="${numStyle};color:var(--gold);">${order}</span>
+    <span style="${newTitleStyle}">${currentTitle}</span>
+  </div>`;
+  if(next) {
+    const color = CHAR_COLORS[next.char||'other']||'var(--col-other)';
+    html += `<div style="${rowStyle}background:var(--surface2);">
+      <span style="${labelStyle}">Después</span>
+      <span style="width:3px;height:32px;border-radius:2px;background:${color};flex-shrink:0;"></span>
+      <span style="${numStyle}">${next.order}</span>
+      <span style="${titleStyle}">${next.title}</span>
+    </div>`;
+  }
+
+  ctx.innerHTML = html;
+  ctx.style.display = 'block';
+
+  // Resaltar el campo de posición
+  inp.style.borderColor = 'var(--gold)';
+  inp.style.boxShadow = '0 0 0 2px rgba(200,168,75,0.2)';
+  inp.addEventListener('input', () => {
+    const v = parseFloat(inp.value);
+    if(!isNaN(v)) showOrderContext(v);
+    else { ctx.style.display='none'; }
+  }, {once:false});
 }
 
 // ── EVENTS ────────────────────────────────────────────────────
