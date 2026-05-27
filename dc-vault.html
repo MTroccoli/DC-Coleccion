@@ -654,12 +654,34 @@ main {
 }
 .fl input:focus, .fl select:focus { border-color: var(--gold); }
 .fl select option { background: #1c1c1c; }
-.checkrow { display: flex; gap: 24px; margin-top: 4px; }
-.chk {
-  display: flex; align-items: center; gap: 8px;
-  font-size: 14px; color: var(--muted); cursor: pointer;
+.checkrow { display: flex; gap: 12px; margin-top: 4px; }
+.toggle-pill {
+  flex: 1; display: flex; align-items: center; gap: 10px;
+  background: var(--surface3); border: 1px solid var(--border2);
+  border-radius: 10px; padding: 10px 14px;
+  cursor: pointer; transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
-.chk input { accent-color: var(--gold); width: 16px; height: 16px; }
+.toggle-pill.on {
+  background: var(--golddim);
+  border-color: var(--gold);
+}
+.toggle-pill-dot {
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 1.5px solid var(--border2);
+  flex-shrink: 0; transition: all 0.2s;
+}
+.toggle-pill.on .toggle-pill-dot {
+  background: var(--gold); border-color: var(--gold);
+  box-shadow: 0 0 6px rgba(200,168,75,0.5);
+}
+.toggle-pill-lbl {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px; letter-spacing: 0.06em;
+  color: var(--muted); transition: color 0.2s;
+}
+.toggle-pill.on .toggle-pill-lbl { color: var(--gold); }
 .sheet-footer {
   display: flex; gap: 10px;
   padding: 16px 20px 0;
@@ -820,8 +842,12 @@ main {
         <div class="fl fg-full">
           <label>Estado</label>
           <div class="checkrow">
-            <label class="chk"><input type="checkbox" id="f-owned"> Lo tengo</label>
-            <label class="chk"><input type="checkbox" id="f-read"> Ya lo leí</label>
+            <div class="toggle-pill" id="tp-owned" onclick="togglePill('owned')">
+              <span class="toggle-pill-dot"></span><span class="toggle-pill-lbl">Lo tengo</span>
+            </div>
+            <div class="toggle-pill" id="tp-read" onclick="togglePill('read')">
+              <span class="toggle-pill-dot"></span><span class="toggle-pill-lbl">Ya lo leí</span>
+            </div>
           </div>
         </div>
       </div>
@@ -1187,7 +1213,7 @@ function render() {
   ERAS.forEach(era => {
     const items = buckets[era.key];
     if(!items.length) return;
-    const isCollapsed = collapsed[era.key] !== false ? 'collapsed' : '';
+    const isCollapsed = collapsed[era.key] === true ? 'collapsed' : '';
 
     html += `<div class="era-block ${isCollapsed}" data-era="${era.key}">
       <div class="era-toggle" onclick="toggleEra('${era.key}')">
@@ -1306,13 +1332,25 @@ function resetForm(){
   document.getElementById('f-lore').value='canon';
   document.getElementById('f-stars').value='4';
   document.getElementById('f-char').value='batman';
-  document.getElementById('f-owned').checked=true;
-  document.getElementById('f-read').checked=false;
+  setPill('owned', true);
+  setPill('read', false);
   document.getElementById('ai-feedback').style.display='none';
   const ctx=document.getElementById('order-context');
   if(ctx) ctx.style.display='none';
   const inp=document.getElementById('f-order');
   if(inp){ inp.style.borderColor=''; inp.style.boxShadow=''; }
+}
+function setPill(key, val) {
+  const el = document.getElementById(`tp-${key}`);
+  if(el) el.classList.toggle('on', val);
+}
+function getPill(key) {
+  const el = document.getElementById(`tp-${key}`);
+  return el ? el.classList.contains('on') : false;
+}
+function togglePill(key) {
+  const el = document.getElementById(`tp-${key}`);
+  if(el) el.classList.toggle('on');
 }
 function openAdd(){
   editId=null; resetForm();
@@ -1336,8 +1374,8 @@ function openEdit(id){
   document.getElementById('f-stars').value=c.stars||4;
   document.getElementById('f-salvat').value=c.salvat||'';
   document.getElementById('f-char').value=c.char||'other';
-  document.getElementById('f-owned').checked=c.owned;
-  document.getElementById('f-read').checked=c.read;
+  setPill('owned', !!c.owned);
+  setPill('read', !!c.read);
   document.getElementById('ai-feedback').style.display='none';
   document.getElementById('btn-autocomplete').style.display='none';
   document.getElementById('modal').classList.add('open');
@@ -1358,8 +1396,8 @@ function saveComic(){
     stars:parseInt(document.getElementById('f-stars').value)||3,
     salvat:parseInt(document.getElementById('f-salvat').value)||null,
     char:document.getElementById('f-char').value||'other',
-    owned:document.getElementById('f-owned').checked,
-    read:document.getElementById('f-read').checked,
+    owned:getPill('owned'),
+    read:getPill('read'),
   };
   if(editId){ const i=comics.findIndex(x=>x.id===editId); comics[i]={...comics[i],...data}; }
   else comics.push({id:'manual-'+Date.now(),issue:'',...data});
