@@ -1193,6 +1193,8 @@ function toggleChar(ch) {
 // ── RENDER ────────────────────────────────────────────────────
 function starsHtml(n){ n=n||3; return `<span class="card-stars">${'★'.repeat(n)}<span class="stars-dim">${'★'.repeat(5-n)}</span></span>`; }
 
+let firstRender = true;
+
 function render() {
   updateStats();
   const list = getVisible();
@@ -1200,7 +1202,12 @@ function render() {
   if(!list.length){ root.innerHTML=`<div class="empty"><div class="empty-big">—</div><div class="empty-sub">Sin resultados.</div></div>`; return; }
 
   const collapsed = {};
-  document.querySelectorAll('.era-block.collapsed').forEach(el => { collapsed[el.dataset.era] = true; });
+  if(firstRender) {
+    ERAS.forEach(e => { collapsed[e.key] = true; });
+    firstRender = false;
+  } else {
+    document.querySelectorAll('.era-block.collapsed').forEach(el => { collapsed[el.dataset.era] = true; });
+  }
 
   const buckets = {};
   ERAS.forEach(e=>{ buckets[e.key]=[]; });
