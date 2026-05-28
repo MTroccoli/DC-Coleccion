@@ -581,14 +581,12 @@ async function loadState() {
     const rows = await res.json();
 
     if(rows.length > 0 && rows[0].data && rows[0].data.length > 0) {
-      // Fila existente con datos — cargar
       comics = rows[0].data;
       localStorage.setItem(LOCAL_KEY, JSON.stringify(comics));
       setSyncStatus('ok', 'Sincronizado');
     } else {
-      // Sin datos — cargar colección por defecto y guardar
       comics = buildDefault();
-      await syncToSupabase();
+      await syncToSupabase(true); // force=true para ignorar modalOpen
     }
   } catch(e) {
     console.warn('Supabase no disponible, usando localStorage:', e);
@@ -624,8 +622,8 @@ async function insertToSupabase() {
   }
 }
 
-async function syncToSupabase() {
-  if(modalOpen) return; // no sincronizar mientras el usuario está editando
+async function syncToSupabase(force=false) {
+  if(modalOpen && !force) return; // no sincronizar mientras el usuario edita
   try {
     const res = await fetch(`${SB.url}/rest/v1/${SB.table}`, {
       method: 'POST',
