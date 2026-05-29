@@ -1495,11 +1495,6 @@ function showOrderContext(order) {
   // Resaltar el campo de posición
   inp.style.borderColor = 'var(--gold)';
   inp.style.boxShadow = '0 0 0 2px rgba(200,168,75,0.2)';
-  inp.addEventListener('input', () => {
-    const v = parseFloat(inp.value);
-    if(!isNaN(v)) showOrderContext(v);
-    else { ctx.style.display='none'; }
-  }, {once:false});
 }
 
 // ── EVENTS ────────────────────────────────────────────────────
@@ -1507,6 +1502,13 @@ document.getElementById('btn-add').addEventListener('click', openAdd);
 document.getElementById('modal-close').addEventListener('click', closeModal);
 document.getElementById('modal-cancel').addEventListener('click', closeModal);
 document.getElementById('modal-save').addEventListener('click', saveComic);
+document.getElementById('f-order').addEventListener('input', () => {
+  const inp = document.getElementById('f-order');
+  const ctx = document.getElementById('order-context');
+  const v = parseFloat(inp.value);
+  if(!isNaN(v)) showOrderContext(v);
+  else if(ctx) ctx.style.display='none';
+});
 document.getElementById('modal').addEventListener('click', e=>{ if(e.target===document.getElementById('modal')) closeModal(); });
 
 document.querySelectorAll('[data-filter]').forEach(btn=>btn.addEventListener('click',()=>{
