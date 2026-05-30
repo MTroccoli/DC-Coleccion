@@ -1638,24 +1638,6 @@ loadState();
 }
 .d-link:active { border-color:var(--gold); }
 
-.btn-editions {
-  width:100%; background:none;
-  border:1px dashed var(--border2); color:var(--muted);
-  padding:10px; border-radius:6px;
-  font-family:'Barlow Condensed',sans-serif;
-  font-size:11px; letter-spacing:0.08em; text-transform:uppercase;
-  cursor:pointer; margin-top:8px;
-}
-.btn-editions.loading { animation:pulse 1s infinite; }
-
-.d-editions {
-  display:none; margin-top:10px;
-  background:var(--surface2); border-radius:6px;
-  padding:10px 12px; font-size:12px; color:var(--text); line-height:1.9;
-  border:1px solid var(--border);
-}
-.d-editions.visible { display:block; }
-
 .d-status-row {
   display:flex; gap:8px;
 }
@@ -1692,12 +1674,8 @@ loadState();
       </div>
 
       <div>
-        <div class="d-section-label">Editorial</div>
-        <div id="d-links"></div>
-        <button class="btn-editions" id="btn-editions" onclick="buscarEdiciones()">
-          🔍 Buscar ediciones en español
-        </button>
-        <div class="d-editions" id="d-editions"></div>
+        <div class="d-section-label">Buscar en tiendas</div>
+        <div id="d-stores"></div>
       </div>
 
       <div>
@@ -1754,21 +1732,17 @@ async function openDetail(id) {
   // Status
   updateDetailStatus(c);
 
-  // Reset editions
-  document.getElementById('d-editions').classList.remove('visible');
-  document.getElementById('d-editions').innerHTML = '';
-  document.getElementById('btn-editions').textContent = '🔍 Buscar ediciones en español';
-  document.getElementById('btn-editions').classList.remove('loading');
-  document.getElementById('btn-editions').style.display = '';
-
-  // Link editorial
-  const linksEl = document.getElementById('d-links');
-  if(c.editorialUrl) {
-    linksEl.innerHTML = `<a class="d-link" href="${c.editorialUrl}" target="_blank">🔗 Ver en editorial</a>`;
-  } else {
-    const q = encodeURIComponent(c.title + ' ' + (c.edition||'') + ' comprar');
-    linksEl.innerHTML = `<a class="d-link" href="https://www.google.com/search?q=${q}" target="_blank">🔍 Buscar en Google</a>`;
-  }
+  // Tiendas — links de búsqueda directos (precios y stock reales en cada sitio)
+  const q = encodeURIComponent(c.title);
+  const stores = [
+    ['Ovni Press', `https://ovnipress.com.ar/?s=${q}&post_type=product`],
+    ['ECC',        `https://www.tiendaecc.com/catalogsearch/result/?q=${q}`],
+    ['Panini',     `https://www.panini.es/shp_esp_es/catalogsearch/result/?q=${q}`],
+    ['Google',     `https://www.google.com/search?q=${encodeURIComponent(c.title+' comprar cómic')}`],
+  ];
+  document.getElementById('d-stores').innerHTML = stores.map(([name,url])=>
+    `<a class="d-link" href="${url}" target="_blank">${name} →</a>`
+  ).join('');
 
   // Open
   document.getElementById('detail-bg').classList.add('open');
@@ -1790,7 +1764,7 @@ async function generateSynopsis(c) {
   try {
     const prompt = `Eres un experto en DC Comics. Dame una sinopsis breve (3-4 oraciones en español) del cómic: "${c.title}" (${c.year||''}, ${c.issue||''}).
 Responde SOLO con JSON válido sin markdown:
-{"synopsis":"texto","editorialUrl":"URL directa en ovnipress.com o ecc.es o panini.es, o null"}`;
+{"synopsis":"texto de la sinopsis"}`;
 
     const res = await fetch(VERCEL_PROXY, {
       method:'POST', headers:{'Content-Type':'application/json'},
@@ -1802,65 +1776,14 @@ Responde SOLO con JSON válido sin markdown:
     const idx = comics.findIndex(x=>x.id===c.id);
     if(idx>=0) {
       comics[idx].synopsis = info.synopsis||'';
-      if(info.editorialUrl && info.editorialUrl!=='null') comics[idx].editorialUrl = info.editorialUrl;
       saveState();
     }
     if(detailId===c.id) {
       synEl.textContent = info.synopsis||'Sin sinopsis disponible.';
       synEl.classList.remove('loading');
-      if(info.editorialUrl && info.editorialUrl!=='null') {
-        document.getElementById('d-links').innerHTML = `<a class="d-link" href="${info.editorialUrl}" target="_blank">🔗 Ver en editorial</a>`;
-      }
     }
   } catch(e) {
     if(detailId===c.id) { synEl.textContent='No se pudo cargar la sinopsis.'; synEl.classList.remove('loading'); }
-  }
-}
-
-async function buscarEdiciones() {
-  const c = comics.find(x=>x.id===detailId);
-  if(!c) return;
-  const btn = document.getElementById('btn-editions');
-  const res = document.getElementById('d-editions');
-  btn.textContent = '⏳ Buscando…'; btn.classList.add('loading');
-
-  try {
-    const prompt = `Eres un experto en cómics DC en español. Buscá ediciones en español de: "${c.title}" (${c.issue||''}).
-Responde SOLO con JSON sin markdown:
-{"ediciones":[{"editorial":"nombre","año":2019,"precio":"€14.95 aprox","url":"url o null","nota":"info extra"}]}
-Incluí Ovni Press, ECC, Panini, Norma si existen.`;
-
-    const response = await fetch(VERCEL_PROXY, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({model:'claude-haiku-4-5-20251001', max_tokens:400, messages:[{role:'user',content:prompt}]})
-    });
-    const data = await response.json();
-    const info = JSON.parse(data.content?.map(b=>b.text||'').join('').trim().replace(/```json|```/g,'').trim());
-
-    if(info.ediciones?.length > 0) {
-      res.innerHTML = info.ediciones.map(e=>`
-        <div style="padding:5px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:8px">
-          <div>
-            <strong style="color:var(--gold)">${e.editorial}</strong>
-            <span style="color:var(--muted);font-size:11px"> · ${e.año||'?'}</span>
-            ${e.nota?`<div style="font-size:11px;color:var(--muted);margin-top:2px">${e.nota}</div>`:''}
-          </div>
-          <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
-            ${e.precio?`<span style="font-size:12px;color:var(--text)">${e.precio}</span>`:''}
-            ${e.url&&e.url!=='null'?`<a href="${e.url}" target="_blank" class="d-link" style="padding:4px 10px;margin:0;font-size:11px">→</a>`:''}
-          </div>
-        </div>
-      `).join('');
-    } else {
-      res.innerHTML = '<span style="color:var(--muted)">No se encontraron ediciones disponibles.</span>';
-    }
-    res.classList.add('visible');
-    btn.style.display='none';
-  } catch(e) {
-    res.innerHTML = '<span style="color:var(--red)">Error al buscar ediciones.</span>';
-    res.classList.add('visible');
-    btn.classList.remove('loading');
-    btn.textContent = '🔍 Buscar ediciones en español';
   }
 }
 
