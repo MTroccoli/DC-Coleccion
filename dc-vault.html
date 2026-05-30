@@ -1248,7 +1248,7 @@ function render() {
             <div class="card-color-bar" style="background:${color}"></div>
             <div class="card-pos">${pos++}</div>
             <div class="card-logo">${logo}</div>
-            <div class="card-body">
+            <div class="card-body" onclick="openDetail('${c.id}')" style="cursor:pointer">
               <div class="card-title ${c.read?'crossed':''}">${c.title}</div>
               <div class="card-tags">
                 <span class="lore-tag lore-${c.lore}">${LORE_LABELS[c.lore]}</span>
@@ -1549,9 +1549,343 @@ function clearSearch(){
   if(sc) sc.classList.remove('visible');
   render();
 }
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();if(e.key==='Enter'&&document.getElementById('modal').classList.contains('open'))saveComic();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeDetail();}if(e.key==='Enter'&&document.getElementById('modal').classList.contains('open'))saveComic();});
 
 loadState();
+</script>
+
+<!-- ═══ DETAIL SHEET ═══ -->
+<style>
+.detail-bg {
+  display:none; position:fixed; inset:0; z-index:200;
+  background:rgba(0,0,0,0.8); backdrop-filter:blur(8px);
+}
+.detail-bg.open { display:block; }
+
+.detail-sheet {
+  position:fixed; bottom:0; left:0; right:0;
+  background:var(--surface);
+  border-top:2px solid var(--gold);
+  border-radius:20px 20px 0 0;
+  padding:0 0 calc(32px + var(--safe-bot));
+  max-height:88vh; overflow-y:auto;
+  z-index:201;
+  transform:translateY(100%);
+  transition:transform 0.35s cubic-bezier(.4,0,.2,1);
+  overscroll-behavior:contain;
+}
+.detail-bg.open .detail-sheet { transform:translateY(0); }
+
+.detail-handle {
+  width:36px; height:4px; border-radius:2px;
+  background:var(--border2); margin:12px auto 0;
+}
+.detail-top {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 20px 10px;
+  border-bottom:1px solid var(--border);
+}
+.detail-title {
+  font-family:'Bebas Neue',sans-serif;
+  font-size:20px; letter-spacing:0.04em; color:var(--text);
+  line-height:1.1; flex:1; margin-right:12px;
+}
+.detail-close {
+  background:var(--surface2); border:none; color:var(--muted);
+  width:28px; height:28px; border-radius:50%; font-size:14px;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+}
+.detail-badges-row {
+  padding:8px 20px 12px;
+  display:flex; gap:6px; flex-wrap:wrap; align-items:center;
+  border-bottom:1px solid var(--border);
+}
+.detail-body { padding:16px 20px; display:flex; flex-direction:column; gap:16px; }
+
+.d-section-label {
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:9px; text-transform:uppercase; letter-spacing:0.2em;
+  color:var(--muted); margin-bottom:6px;
+}
+.d-synopsis {
+  font-size:13px; color:var(--text); line-height:1.65;
+  font-style:italic;
+}
+.d-synopsis.loading { color:var(--muted); animation:pulse 1s infinite; }
+
+.d-meta-grid {
+  display:grid; grid-template-columns:1fr 1fr; gap:6px;
+}
+.d-meta-item {
+  background:var(--surface2); border-radius:6px;
+  padding:8px 10px; border:1px solid var(--border);
+}
+.d-meta-key {
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:9px; text-transform:uppercase; letter-spacing:0.14em;
+  color:var(--muted); margin-bottom:2px;
+}
+.d-meta-val { font-size:12px; color:var(--text); font-weight:500; }
+
+.d-link {
+  display:inline-flex; align-items:center; gap:6px;
+  background:var(--surface2); border:1px solid var(--border2);
+  color:var(--gold); padding:8px 14px; border-radius:6px;
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:12px; letter-spacing:0.06em; text-transform:uppercase;
+  text-decoration:none; transition:all 0.15s; margin-right:8px; margin-bottom:6px;
+}
+.d-link:active { border-color:var(--gold); }
+
+.btn-editions {
+  width:100%; background:none;
+  border:1px dashed var(--border2); color:var(--muted);
+  padding:10px; border-radius:6px;
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:11px; letter-spacing:0.08em; text-transform:uppercase;
+  cursor:pointer; margin-top:8px;
+}
+.btn-editions.loading { animation:pulse 1s infinite; }
+
+.d-editions {
+  display:none; margin-top:10px;
+  background:var(--surface2); border-radius:6px;
+  padding:10px 12px; font-size:12px; color:var(--text); line-height:1.9;
+  border:1px solid var(--border);
+}
+.d-editions.visible { display:block; }
+
+.d-status-row {
+  display:flex; gap:8px;
+}
+.d-status-btn {
+  flex:1; padding:9px 6px; border-radius:6px;
+  border:1px solid var(--border2); background:none; color:var(--muted);
+  cursor:pointer; font-family:'Barlow Condensed',sans-serif;
+  font-size:12px; letter-spacing:0.06em; text-transform:uppercase;
+  transition:all 0.2s;
+}
+.d-status-btn.on-owned { background:var(--golddim); border-color:var(--gold); color:var(--gold); }
+.d-status-btn.on-read  { background:#2a8a5020; border-color:var(--green); color:var(--green); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+</style>
+
+<div class="detail-bg" id="detail-bg" onclick="if(event.target===this)closeDetail()">
+  <div class="detail-sheet">
+    <div class="detail-handle"></div>
+    <div class="detail-top">
+      <div class="detail-title" id="d-title">—</div>
+      <button class="detail-close" onclick="closeDetail()">✕</button>
+    </div>
+    <div class="detail-badges-row" id="d-badges"></div>
+    <div class="detail-body">
+
+      <div>
+        <div class="d-section-label">Sinopsis</div>
+        <div class="d-synopsis loading" id="d-synopsis">Cargando…</div>
+      </div>
+
+      <div>
+        <div class="d-section-label">Datos</div>
+        <div class="d-meta-grid" id="d-meta"></div>
+      </div>
+
+      <div>
+        <div class="d-section-label">Editorial</div>
+        <div id="d-links"></div>
+        <button class="btn-editions" id="btn-editions" onclick="buscarEdiciones()">
+          🔍 Buscar ediciones en español
+        </button>
+        <div class="d-editions" id="d-editions"></div>
+      </div>
+
+      <div>
+        <div class="d-section-label">Estado</div>
+        <div class="d-status-row">
+          <button class="d-status-btn" id="d-btn-owned" onclick="toggleOwnedDetail()">○ No lo tengo</button>
+          <button class="d-status-btn" id="d-btn-read"  onclick="toggleReadDetail()">○ Sin leer</button>
+          <button class="d-status-btn" onclick="openEditFromDetail()" style="flex:0.4;font-size:16px">✏</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const VERCEL_PROXY = 'https://dc-coleccion.vercel.app/api/claude';
+let detailId = null;
+
+function closeDetail() {
+  document.getElementById('detail-bg').classList.remove('open');
+  detailId = null;
+}
+
+async function openDetail(id) {
+  detailId = id;
+  const c = comics.find(x=>x.id===id);
+  if(!c) return;
+
+  const RAW_COLORS = {batman:'#c8a84b',superman:'#2266bb',flash:'#cc3322',jla:'#e8e8e0',ww:'#cc6622',gl:'#226622',titanes:'#aa4488',crisis:'#4477cc',salvat:'#33aa66',other:'#5a5a56'};
+  const color = RAW_COLORS[c.char||'other'] || '#5a5a56';
+  const LORE_LABELS = { canon:'Canon', tiein:'Tie-in', elseworlds:'Elseworlds', origen:'Origen' };
+
+  document.getElementById('d-title').textContent = c.title;
+  document.getElementById('d-badges').innerHTML = `
+    <span class="lore-tag lore-${c.lore}">${LORE_LABELS[c.lore]}</span>
+    <span class="char-badge" style="background:${color}22;color:${color};border:1px solid ${color}44;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;padding:2px 7px;border-radius:2px">${CHAR_LABELS[c.char||'other']||'Otro'}</span>
+    ${c.salvat?`<span class="salvat-badge">#${c.salvat}</span>`:''}
+    ${starsHtml(c.stars)}
+  `;
+
+  // Meta grid
+  const meta = [
+    c.writer  ? ['Guionista', c.writer]  : null,
+    c.artist  ? ['Dibujante', c.artist]  : null,
+    c.year    ? ['Año', c.year]          : null,
+    c.edition ? ['Editorial', c.edition] : null,
+    c.volume  ? ['Volumen', c.volume]    : null,
+    c.issue   ? ['Issues', c.issue]      : null,
+  ].filter(Boolean);
+  document.getElementById('d-meta').innerHTML = meta.map(([k,v])=>`
+    <div class="d-meta-item"><div class="d-meta-key">${k}</div><div class="d-meta-val">${v}</div></div>
+  `).join('');
+
+  // Status
+  updateDetailStatus(c);
+
+  // Reset editions
+  document.getElementById('d-editions').classList.remove('visible');
+  document.getElementById('d-editions').innerHTML = '';
+  document.getElementById('btn-editions').textContent = '🔍 Buscar ediciones en español';
+  document.getElementById('btn-editions').classList.remove('loading');
+  document.getElementById('btn-editions').style.display = '';
+
+  // Link editorial
+  const linksEl = document.getElementById('d-links');
+  if(c.editorialUrl) {
+    linksEl.innerHTML = `<a class="d-link" href="${c.editorialUrl}" target="_blank">🔗 Ver en editorial</a>`;
+  } else {
+    const q = encodeURIComponent(c.title + ' ' + (c.edition||'') + ' comprar');
+    linksEl.innerHTML = `<a class="d-link" href="https://www.google.com/search?q=${q}" target="_blank">🔍 Buscar en Google</a>`;
+  }
+
+  // Open
+  document.getElementById('detail-bg').classList.add('open');
+
+  // Synopsis
+  const synEl = document.getElementById('d-synopsis');
+  if(c.synopsis) {
+    synEl.textContent = c.synopsis;
+    synEl.classList.remove('loading');
+  } else {
+    synEl.textContent = 'Generando sinopsis…';
+    synEl.classList.add('loading');
+    generateSynopsis(c);
+  }
+}
+
+async function generateSynopsis(c) {
+  const synEl = document.getElementById('d-synopsis');
+  try {
+    const prompt = `Eres un experto en DC Comics. Dame una sinopsis breve (3-4 oraciones en español) del cómic: "${c.title}" (${c.year||''}, ${c.issue||''}).
+Responde SOLO con JSON válido sin markdown:
+{"synopsis":"texto","editorialUrl":"URL directa en ovnipress.com o ecc.es o panini.es, o null"}`;
+
+    const res = await fetch(VERCEL_PROXY, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({model:'claude-haiku-4-5-20251001', max_tokens:300, messages:[{role:'user',content:prompt}]})
+    });
+    const data = await res.json();
+    const info = JSON.parse(data.content?.map(b=>b.text||'').join('').trim().replace(/```json|```/g,'').trim());
+
+    const idx = comics.findIndex(x=>x.id===c.id);
+    if(idx>=0) {
+      comics[idx].synopsis = info.synopsis||'';
+      if(info.editorialUrl && info.editorialUrl!=='null') comics[idx].editorialUrl = info.editorialUrl;
+      saveState();
+    }
+    if(detailId===c.id) {
+      synEl.textContent = info.synopsis||'Sin sinopsis disponible.';
+      synEl.classList.remove('loading');
+      if(info.editorialUrl && info.editorialUrl!=='null') {
+        document.getElementById('d-links').innerHTML = `<a class="d-link" href="${info.editorialUrl}" target="_blank">🔗 Ver en editorial</a>`;
+      }
+    }
+  } catch(e) {
+    if(detailId===c.id) { synEl.textContent='No se pudo cargar la sinopsis.'; synEl.classList.remove('loading'); }
+  }
+}
+
+async function buscarEdiciones() {
+  const c = comics.find(x=>x.id===detailId);
+  if(!c) return;
+  const btn = document.getElementById('btn-editions');
+  const res = document.getElementById('d-editions');
+  btn.textContent = '⏳ Buscando…'; btn.classList.add('loading');
+
+  try {
+    const prompt = `Eres un experto en cómics DC en español. Buscá ediciones en español de: "${c.title}" (${c.issue||''}).
+Responde SOLO con JSON sin markdown:
+{"ediciones":[{"editorial":"nombre","año":2019,"precio":"€14.95 aprox","url":"url o null","nota":"info extra"}]}
+Incluí Ovni Press, ECC, Panini, Norma si existen.`;
+
+    const response = await fetch(VERCEL_PROXY, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({model:'claude-haiku-4-5-20251001', max_tokens:400, messages:[{role:'user',content:prompt}]})
+    });
+    const data = await response.json();
+    const info = JSON.parse(data.content?.map(b=>b.text||'').join('').trim().replace(/```json|```/g,'').trim());
+
+    if(info.ediciones?.length > 0) {
+      res.innerHTML = info.ediciones.map(e=>`
+        <div style="padding:5px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:8px">
+          <div>
+            <strong style="color:var(--gold)">${e.editorial}</strong>
+            <span style="color:var(--muted);font-size:11px"> · ${e.año||'?'}</span>
+            ${e.nota?`<div style="font-size:11px;color:var(--muted);margin-top:2px">${e.nota}</div>`:''}
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+            ${e.precio?`<span style="font-size:12px;color:var(--text)">${e.precio}</span>`:''}
+            ${e.url&&e.url!=='null'?`<a href="${e.url}" target="_blank" class="d-link" style="padding:4px 10px;margin:0;font-size:11px">→</a>`:''}
+          </div>
+        </div>
+      `).join('');
+    } else {
+      res.innerHTML = '<span style="color:var(--muted)">No se encontraron ediciones disponibles.</span>';
+    }
+    res.classList.add('visible');
+    btn.style.display='none';
+  } catch(e) {
+    res.innerHTML = '<span style="color:var(--red)">Error al buscar ediciones.</span>';
+    res.classList.add('visible');
+    btn.classList.remove('loading');
+    btn.textContent = '🔍 Buscar ediciones en español';
+  }
+}
+
+function updateDetailStatus(c) {
+  const bo = document.getElementById('d-btn-owned');
+  const br = document.getElementById('d-btn-read');
+  bo.className = 'd-status-btn' + (c.owned ? ' on-owned' : '');
+  br.className = 'd-status-btn' + (c.read  ? ' on-read'  : '');
+  bo.textContent = c.owned ? '✓ Lo tengo' : '○ No lo tengo';
+  br.textContent = c.read  ? '✓ Leído'    : '○ Sin leer';
+}
+function toggleOwnedDetail() {
+  const c = comics.find(x=>x.id===detailId); if(!c) return;
+  c.owned=!c.owned; if(!c.owned) c.read=false;
+  saveState(); render(); updateDetailStatus(c);
+}
+function toggleReadDetail() {
+  const c = comics.find(x=>x.id===detailId); if(!c) return;
+  c.read=!c.read; saveState(); render(); updateDetailStatus(c);
+}
+function openEditFromDetail() {
+  const id = detailId; closeDetail();
+  setTimeout(()=>openEdit(id), 350);
+}
 </script>
 </body>
 </html>
