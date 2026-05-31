@@ -291,6 +291,28 @@ main {
   padding: 0 20px 10px;
 }
 
+/* Banner de reseteo que aparece al final de un tomo evento */
+.reset-banner-inline {
+  margin: 2px 16px 8px;
+  background: linear-gradient(90deg, rgba(204,51,51,0.22), rgba(204,51,51,0.04));
+  border-left: 3px solid var(--red);
+  border-radius: 0 6px 6px 0;
+  padding: 10px 14px;
+  font-size: 11px; color: #e08888;
+  font-family: 'Barlow Condensed', sans-serif;
+  letter-spacing: 0.05em; text-transform: uppercase;
+  line-height: 1.4;
+}
+/* Destacar el tomo que es evento de reseteo */
+.swipe-wrap.reset-tome .comic-card {
+  background: linear-gradient(90deg, rgba(204,51,51,0.08), transparent);
+  border-top: 1px solid rgba(204,51,51,0.25);
+  border-bottom: 1px solid rgba(204,51,51,0.25);
+}
+.swipe-wrap.reset-tome .card-title {
+  color: #f0a0a0;
+}
+
 /* ── CARDS ── */
 .card-list { display: flex; flex-direction: column; gap: 1px; padding-bottom: 4px; }
 
@@ -862,15 +884,19 @@ main {
 <script>
 // ── ERAS ──────────────────────────────────────────────────────
 const ERAS = [
-  { key:'EP', num:'PRE', name:'La Era Pre-Crisis', desc:'Edad de Plata y Bronce, antes del gran reseteo de 1985. Dan contexto invaluable a Crisis.', reset:null, oMin:-99, oMax:0 },
-  { key:'E0', num:'00',  name:'Crisis en Tierras Infinitas', desc:'El punto de partida obligatorio. Crisis destruye y reconstruye el multiverso DC.', reset:'⚡ Evento de reseteo — define todo lo que viene después', oMin:0, oMax:1 },
+  { key:'EP', num:'PRE', name:'La Era Pre-Crisis', desc:'Edad de Plata y Bronce, antes del gran reseteo de 1985. Dan contexto invaluable a Crisis, que cierra esta era.', reset:null, oMin:-99, oMax:1 },
   { key:'E1', num:'01',  name:'Los Orígenes Post-Crisis', desc:'Batman, Superman y WW reciben nuevos orígenes canónicos. Frank Miller, Pérez y Byrne.', reset:null, oMin:1, oMax:10 },
   { key:'E2', num:'02',  name:'La Era Clásica', desc:'Los 80s y 90s post-Crisis. Knightfall, la muerte de Jason Todd, Superman muere.', reset:null, oMin:10, oMax:25 },
   { key:'E3', num:'03',  name:'La Liga Moderna', desc:'Morrison reinventa la JLA. Torre de Babel, Nuevo Orden Mundial, grandes crossovers.', reset:null, oMin:25, oMax:45 },
-  { key:'E4', num:'04',  name:'El Cierre de Una Era', desc:'Silencio, Batman e Hijo, Flash Renacimiento. La era pre-New 52 llega a su clímax.', reset:null, oMin:45, oMax:60 },
-  { key:'E5', num:'05',  name:'Flashpoint — El Segundo Reseteo', desc:'Flash rompe el tiempo. Cierra la era clásica y abre el New 52.', reset:'⚡ Segundo reseteo — cierra la era clásica, abre el New 52', oMin:60, oMax:80 },
+  { key:'E4', num:'04',  name:'El Cierre de Una Era', desc:'Silencio, Batman e Hijo, Flash Renacimiento. La era pre-New 52 llega a su clímax con Flashpoint.', reset:null, oMin:45, oMax:80 },
   { key:'EW', num:'∞',   name:'Elseworlds', desc:'Historias alternativas fuera del canon. Leer en cualquier momento.', reset:null, oMin:80, oMax:9999 },
 ];
+
+// Tomos que son "eventos de reseteo" — se muestran como banner especial al final de su era
+const RESET_TOMES = {
+  'x-crisis': '⚡ Crisis en Tierras Infinitas cierra esta era y reconstruye todo el multiverso DC',
+  'x-fp':     '⚡ Flashpoint cierra la era clásica y abre el New 52',
+};
 
 const CHAR_COLORS = { batman:'var(--col-batman)', superman:'var(--col-superman)', flash:'var(--col-flash)', crisis:'var(--col-crisis)', jla:'var(--col-jla)', ww:'var(--col-ww)', gl:'var(--col-gl)', titanes:'var(--col-titanes)', salvat:'var(--col-salvat)', other:'var(--col-other)' };
 const CHAR_LABELS = { batman:'Batman', superman:'Superman', flash:'Flash', crisis:'Crisis', jla:'JLA', ww:'Wonder Woman', gl:'Green Lantern', titanes:'Titanes', salvat:'Salvat', other:'Otro' };
@@ -1242,8 +1268,9 @@ function render() {
       const color = RAW_COLORS[ch] || '#5a5a56';
       const cssColor = CHAR_COLORS[ch] || 'var(--col-other)';
       const logo = HERO_LOGOS[ch] ? HERO_LOGOS[ch](color, 26) : '';
+      const isReset = RESET_TOMES[c.id];
       html += `
-        <div class="swipe-wrap" data-id="${c.id}" id="sw-${c.id}">
+        <div class="swipe-wrap ${isReset?'reset-tome':''}" data-id="${c.id}" id="sw-${c.id}">
           <div class="comic-card ${c.read?'is-read':''}" data-id="${c.id}">
             <div class="card-color-bar" style="background:${color}"></div>
             <div class="card-pos">${pos++}</div>
@@ -1277,7 +1304,8 @@ function render() {
               <button class="btn-confirm-del" onclick="confirmDelete('${c.id}')">Eliminar</button>
             </div>
           </div>
-        </div>`;
+        </div>
+        ${isReset?`<div class="reset-banner-inline">${isReset}</div>`:''}`;
     });
     html += `</div></div></div>`;
   });
