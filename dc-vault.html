@@ -1316,6 +1316,7 @@ function render() {
         // Render saga accordion (collapsed by default)
         const sagaItems = sagaMap[c.saga];
         const sagaKey = `saga-${era.key}-${c.saga.replace(/\s+/g,'-')}`;
+        // collapsed by default (true) unless user explicitly opened it (false)
         const sagaCollapsed = collapsedSagas[sagaKey] === false ? '' : 'collapsed';
         html += `<div class="saga-block ${sagaCollapsed}" data-saga="${sagaKey}">
           <div class="saga-toggle" onclick="toggleSaga('${sagaKey}')">
@@ -1343,14 +1344,15 @@ function render() {
   initSwipe();
 }
 
-// Track saga collapsed state separately (default: collapsed)
+// Track saga collapsed state (default: collapsed = true)
 const collapsedSagas = {};
 
 function toggleSaga(key) {
   const el = document.querySelector(`.saga-block[data-saga="${key}"]`);
   if(!el) return;
   el.classList.toggle('collapsed');
-  collapsedSagas[key] = !el.classList.contains('collapsed');
+  // true = collapsed, false = open
+  collapsedSagas[key] = el.classList.contains('collapsed');
 }
 
 function renderCard(c, pos) {
@@ -1532,6 +1534,20 @@ async function doAutocomplete(){
   const btn=document.getElementById('btn-autocomplete'),fb=document.getElementById('ai-feedback'),lbl=document.getElementById('ai-label');
   btn.disabled=true;btn.classList.add('loading');lbl.textContent='…';
   fb.style.display='none';fb.className='ai-feedback';
+  const SAGAS_CONOCIDAS = `Sagas conocidas en esta colección:
+- "Knightfall" → Batman: Camino a la Caída, Preludio, La Caída, Cruzada I y II, Búsqueda, Fin del Caballero, Pródigo, Troika
+- "Batman: Tierra de Nadie" → Contagio, Legado, Cataclismo Pt1/2, Ruta a TDN, Vol 6-10
+- "La Muerte de Superman" → La Muerte de Superman, Funeral para un Amigo, Retorno de Superman
+- "Flash: La Saga de la Velocidad" → Flash Velocidad Salvaje, Flash: Rogue War, Flash: Renacimiento, etc
+- "El Largo Halloween" → Parte 1 y 2
+- "Batman: Silencio" → Parte 1 y 2
+- "JLA: Año Uno" → Parte 1 y 2
+- "JLA: Justicia" → Parte 1 y 2
+- "DC: La Nueva Frontera" → Parte 1 y 2
+- "Superman: Tierra Uno" → Parte 1 y 2
+- "Superman: Legado" → Parte 1 y 2
+- "Batman: Detective" → Parte 1 y 2`;
+
   const prompt=`Eres un experto en DC Comics. El usuario quiere añadir: "${title}"
 
 Eras (order en enteros 3 dígitos):
@@ -1542,7 +1558,9 @@ Eras (order en enteros 3 dígitos):
 - 04 (445-600): Cierre pre-New52
 - EW (800+): Elseworlds
 
-Si pertenece a una saga multi-tomo incluí el nombre exacto (ej: "Knightfall", "Batman: Tierra de Nadie", "Batman: Silencio").
+${SAGAS_CONOCIDAS}
+
+Si el tomo pertenece a alguna saga conocida o a cualquier otra saga multi-tomo, incluí el nombre exacto de la saga.
 
 Responde SOLO con JSON válido sin markdown:
 {"title":"título exacto en español","volume":"issues o vol","arc":"nombre de era","lore":"canon|tiein|elseworlds|origen","stars":1-5,"order":número entero,"char":"batman|superman|flash|gl|jla|crisis|ww|titanes|other","writer":"guionista","artist":"dibujante","year":año,"saga":"nombre de saga o null","reason":"explicación breve en español"}`;
