@@ -581,6 +581,34 @@ main {
 .fab:active { transform: scale(0.92); background: var(--gold2); }
 
 /* ── EMPTY ── */
+/* ── SAGA ACCORDION ── */
+.saga-block { margin-bottom: 2px; }
+.saga-toggle {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 20px 8px 16px;
+  cursor: pointer; user-select: none;
+  background: var(--surface2);
+  border-left: 3px solid var(--gold);
+  -webkit-tap-highlight-color: transparent;
+}
+.saga-toggle:active { background: var(--surface3); }
+.saga-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 14px; letter-spacing: 0.08em;
+  color: var(--gold); flex: 1;
+}
+.saga-count {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px; color: var(--muted); letter-spacing: 0.06em;
+}
+.saga-chevron {
+  font-size: 13px; color: var(--gold); opacity: 0.6;
+  transition: transform 0.25s cubic-bezier(.4,0,.2,1); flex-shrink: 0;
+}
+.saga-block.collapsed .saga-chevron { transform: rotate(-90deg); }
+.saga-body { overflow: hidden; max-height: 9999px; transition: max-height 0.3s ease; }
+.saga-block.collapsed .saga-body { max-height: 0; }
+
 .empty { text-align: center; padding: 60px 20px; }
 .empty-big { font-family: 'Bebas Neue', sans-serif; font-size: 56px; color: var(--dim); }
 .empty-sub { font-size: 13px; color: var(--muted); margin-top: 6px; }
@@ -863,6 +891,10 @@ main {
           </select>
         </div>
         <div class="fl fg-full">
+          <label>Saga (si pertenece a una)</label>
+          <input id="f-saga" type="text" placeholder="Knightfall, Tierra de Nadie…">
+        </div>
+        <div class="fl fg-full">
           <label>Estado</label>
           <div class="checkrow">
             <div class="toggle-pill" id="tp-owned" onclick="togglePill('owned')">
@@ -885,12 +917,12 @@ main {
 <script>
 // ── ERAS ──────────────────────────────────────────────────────
 const ERAS = [
-  { key:'EP', num:'PRE', name:'La Era Pre-Crisis', desc:'Edad de Plata y Bronce, antes del gran reseteo de 1985. Dan contexto invaluable a Crisis, que cierra esta era.', reset:null, oMin:-99, oMax:1 },
-  { key:'E1', num:'01',  name:'Los Orígenes Post-Crisis', desc:'Batman, Superman y WW reciben nuevos orígenes canónicos. Frank Miller, Pérez y Byrne.', reset:null, oMin:1, oMax:10 },
-  { key:'E2', num:'02',  name:'La Era Clásica', desc:'Los 80s y 90s post-Crisis. Knightfall, la muerte de Jason Todd, Superman muere.', reset:null, oMin:10, oMax:25 },
-  { key:'E3', num:'03',  name:'La Liga Moderna', desc:'Morrison reinventa la JLA. Torre de Babel, Nuevo Orden Mundial, grandes crossovers.', reset:null, oMin:25, oMax:45 },
-  { key:'E4', num:'04',  name:'El Cierre de Una Era', desc:'Silencio, Batman e Hijo, Flash Renacimiento. La era pre-New 52 llega a su clímax con Flashpoint.', reset:null, oMin:45, oMax:80 },
-  { key:'EW', num:'∞',   name:'Elseworlds', desc:'Historias alternativas fuera del canon. Leer en cualquier momento.', reset:null, oMin:80, oMax:9999 },
+  { key:'EP', num:'PRE', name:'La Era Pre-Crisis', desc:'Edad de Plata y Bronce, antes del gran reseteo de 1985. Dan contexto invaluable a Crisis, que cierra esta era.', reset:null, oMin:-999, oMax:5 },
+  { key:'E1', num:'01',  name:'Los Orígenes Post-Crisis', desc:'Batman, Superman y WW reciben nuevos orígenes canónicos. Frank Miller, Pérez y Byrne.', reset:null, oMin:5, oMax:110 },
+  { key:'E2', num:'02',  name:'La Era Clásica', desc:'Los 80s y 90s post-Crisis. Knightfall, Tierra de Nadie, Superman muere.', reset:null, oMin:110, oMax:250 },
+  { key:'E3', num:'03',  name:'La Liga Moderna', desc:'Morrison reinventa la JLA. Torre de Babel, Nuevo Orden Mundial, grandes crossovers.', reset:null, oMin:250, oMax:445 },
+  { key:'E4', num:'04',  name:'El Cierre de Una Era', desc:'Silencio, Batman e Hijo, Flash Renacimiento. La era pre-New 52 llega a su clímax con Flashpoint.', reset:null, oMin:445, oMax:600 },
+  { key:'EW', num:'∞',   name:'Elseworlds', desc:'Historias alternativas fuera del canon. Leer en cualquier momento.', reset:null, oMin:600, oMax:99999 },
 ];
 
 // Tomos que son "eventos de reseteo" — se muestran como banner especial al final de su era
@@ -1263,55 +1295,107 @@ function render() {
         ${era.reset?`<div class="era-reset-banner">${era.reset}</div>`:''}
         <div class="card-list">`;
 
+    // Group items by saga
+    const sagaMap = {};
+    const noSaga = [];
     items.forEach(c => {
-      const ch = c.char||'other';
-      const RAW_COLORS = {batman:'#c8a84b',superman:'#2266bb',flash:'#cc3322',jla:'#e8e8e0',ww:'#cc6622',gl:'#226622',titanes:'#aa4488',crisis:'#4477cc',salvat:'#33aa66',other:'#5a5a56'};
-      const color = RAW_COLORS[ch] || '#5a5a56';
-      const cssColor = CHAR_COLORS[ch] || 'var(--col-other)';
-      const logo = HERO_LOGOS[ch] ? HERO_LOGOS[ch](color, 26) : '';
-      const isReset = RESET_TOMES[c.id];
-      html += `
-        <div class="swipe-wrap ${isReset?'reset-tome':''}" data-id="${c.id}" id="sw-${c.id}">
-          <div class="comic-card ${c.read?'is-read':''}" data-id="${c.id}">
-            <div class="card-color-bar" style="background:${color}"></div>
-            <div class="card-pos">${pos++}</div>
-            <div class="card-logo">${logo}</div>
-            <div class="card-body" onclick="openDetail('${c.id}')" style="cursor:pointer">
-              <div class="card-title ${c.read?'crossed':''}">${c.title}</div>
-              <div class="card-tags">
-                <span class="lore-tag lore-${c.lore}">${LORE_LABELS[c.lore]}</span>
-                ${c.salvat?`<span class="salvat-badge">#${c.salvat}</span>`:''}
-                ${starsHtml(c.stars)}
-              </div>
-              ${c.edition||c.volume?`<div class="card-sub">${[c.edition,c.volume].filter(Boolean).join(' · ')}</div>`:''}
-              ${c.writer||c.artist||c.year?`<div class="card-sub">${[c.writer?`✍ ${c.writer}`:'', c.artist?`✏ ${c.artist}`:'', c.year?`${c.year}`:''].filter(Boolean).join(' · ')}</div>`:''}
-            </div>
-            <div class="card-actions">
-              <div class="action-group">
-                <span class="dot-owned ${c.owned?'yes':''}" onclick="toggleOwned('${c.id}')"></span>
-                <span class="action-lbl">Tengo</span>
-              </div>
-              <div class="action-group">
-                <span class="toggle-read ${c.read?'yes':''}" onclick="toggleRead('${c.id}')"></span>
-                <span class="action-lbl">Leído</span>
-              </div>
-              <button class="edit-btn" onclick="openEdit('${c.id}')">✏</button>
-            </div>
-          </div>
-          <div class="delete-confirm">
-            <span>¿Eliminar este tomo?</span>
-            <div style="display:flex;gap:8px">
-              <button class="btn-cancel-del" onclick="cancelDelete('${c.id}')">No</button>
-              <button class="btn-confirm-del" onclick="confirmDelete('${c.id}')">Eliminar</button>
-            </div>
-          </div>
-        </div>
-        ${isReset?`<div class="reset-banner-inline">${isReset}</div>`:''}`;
+      if(c.saga) {
+        if(!sagaMap[c.saga]) sagaMap[c.saga] = [];
+        sagaMap[c.saga].push(c);
+      } else {
+        noSaga.push(c);
+      }
     });
+
+    // Interleave sagas and solo items in order
+    const rendered = new Set();
+    items.forEach(c => {
+      if(rendered.has(c.id)) return;
+
+      if(c.saga && sagaMap[c.saga] && !rendered.has('saga-'+c.saga)) {
+        // Render saga accordion (collapsed by default)
+        const sagaItems = sagaMap[c.saga];
+        const sagaKey = `saga-${era.key}-${c.saga.replace(/\s+/g,'-')}`;
+        const sagaCollapsed = collapsedSagas[sagaKey] === false ? '' : 'collapsed';
+        html += `<div class="saga-block ${sagaCollapsed}" data-saga="${sagaKey}">
+          <div class="saga-toggle" onclick="toggleSaga('${sagaKey}')">
+            <div class="saga-name">${c.saga}</div>
+            <div class="saga-count">x${sagaItems.length}</div>
+            <div class="saga-chevron">›</div>
+          </div>
+          <div class="saga-body"><div class="card-list">`;
+
+        sagaItems.forEach(sc => {
+          html += renderCard(sc, pos++);
+          rendered.add(sc.id);
+        });
+        html += `</div></div></div>`;
+        rendered.add('saga-'+c.saga);
+      } else if(!c.saga) {
+        html += renderCard(c, pos++);
+        rendered.add(c.id);
+      }
+    });
+
     html += `</div></div></div>`;
   });
   root.innerHTML = html;
   initSwipe();
+}
+
+// Track saga collapsed state separately (default: collapsed)
+const collapsedSagas = {};
+
+function toggleSaga(key) {
+  const el = document.querySelector(`.saga-block[data-saga="${key}"]`);
+  if(!el) return;
+  el.classList.toggle('collapsed');
+  collapsedSagas[key] = !el.classList.contains('collapsed');
+}
+
+function renderCard(c, pos) {
+  const ch = c.char||'other';
+  const RAW_COLORS = {batman:'#c8a84b',superman:'#2266bb',flash:'#cc3322',jla:'#e8e8e0',ww:'#cc6622',gl:'#226622',titanes:'#aa4488',crisis:'#4477cc',salvat:'#33aa66',other:'#5a5a56'};
+  const color = RAW_COLORS[ch] || '#5a5a56';
+  const logo = HERO_LOGOS[ch] ? HERO_LOGOS[ch](color, 26) : '';
+  const isReset = RESET_TOMES[c.id];
+  return `
+    <div class="swipe-wrap ${isReset?'reset-tome':''}" data-id="${c.id}" id="sw-${c.id}">
+      <div class="comic-card ${c.read?'is-read':''}" data-id="${c.id}">
+        <div class="card-color-bar" style="background:${color}"></div>
+        <div class="card-pos">${pos}</div>
+        <div class="card-logo">${logo}</div>
+        <div class="card-body" onclick="openDetail('${c.id}')" style="cursor:pointer">
+          <div class="card-title ${c.read?'crossed':''}">${c.title}</div>
+          <div class="card-tags">
+            <span class="lore-tag lore-${c.lore}">${LORE_LABELS[c.lore]}</span>
+            ${c.salvat?`<span class="salvat-badge">#${c.salvat}</span>`:''}
+            ${starsHtml(c.stars)}
+          </div>
+          ${c.edition||c.volume?`<div class="card-sub">${[c.edition,c.volume].filter(Boolean).join(' · ')}</div>`:''}
+          ${c.writer||c.artist||c.year?`<div class="card-sub">${[c.writer?`✍ ${c.writer}`:'', c.artist?`✏ ${c.artist}`:'', c.year?`${c.year}`:''].filter(Boolean).join(' · ')}</div>`:''}
+        </div>
+        <div class="card-actions">
+          <div class="action-group">
+            <span class="dot-owned ${c.owned?'yes':''}" onclick="toggleOwned('${c.id}')"></span>
+            <span class="action-lbl">Tengo</span>
+          </div>
+          <div class="action-group">
+            <span class="toggle-read ${c.read?'yes':''}" onclick="toggleRead('${c.id}')"></span>
+            <span class="action-lbl">Leído</span>
+          </div>
+          <button class="edit-btn" onclick="openEdit('${c.id}')">✏</button>
+        </div>
+      </div>
+      <div class="delete-confirm">
+        <span>¿Eliminar este tomo?</span>
+        <div style="display:flex;gap:8px">
+          <button class="btn-cancel-del" onclick="cancelDelete('${c.id}')">No</button>
+          <button class="btn-confirm-del" onclick="confirmDelete('${c.id}')">Eliminar</button>
+        </div>
+      </div>
+    </div>
+    ${isReset?`<div class="reset-banner-inline">${isReset}</div>`:''}`;
 }
 
 function updateStats() {
@@ -1364,7 +1448,7 @@ function toggleRead(id){  const c=comics.find(x=>x.id===id); if(c){c.read=!c.rea
 // ── MODAL ─────────────────────────────────────────────────────
 let editId=null;
 function resetForm(){
-  ['f-title','f-volume','f-edition','f-arc','f-order','f-salvat','f-writer','f-artist','f-year'].forEach(id=>document.getElementById(id).value='');
+  ['f-title','f-volume','f-edition','f-arc','f-order','f-salvat','f-writer','f-artist','f-year','f-saga'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f-lore').value='canon';
   document.getElementById('f-stars').value='4';
   document.getElementById('f-char').value='batman';
@@ -1404,7 +1488,7 @@ function openEdit(id){
   document.getElementById('f-year').value=c.year||'';
   document.getElementById('f-volume').value=c.volume||'';
   document.getElementById('f-edition').value=c.edition||'';
-  document.getElementById('f-arc').value=c.arc||'';
+  document.getElementById('f-saga').value    = c.saga||'';
   document.getElementById('f-order').value=c.order||'';
   document.getElementById('f-lore').value=c.lore||'canon';
   document.getElementById('f-stars').value=c.stars||4;
@@ -1432,6 +1516,7 @@ function saveComic(){
     stars:parseInt(document.getElementById('f-stars').value)||3,
     salvat:parseInt(document.getElementById('f-salvat').value)||null,
     char:document.getElementById('f-char').value||'other',
+    saga:document.getElementById('f-saga').value.trim()||null,
     owned:getPill('owned'),
     read:getPill('read'),
   };
@@ -1447,11 +1532,25 @@ async function doAutocomplete(){
   const btn=document.getElementById('btn-autocomplete'),fb=document.getElementById('ai-feedback'),lbl=document.getElementById('ai-label');
   btn.disabled=true;btn.classList.add('loading');lbl.textContent='…';
   fb.style.display='none';fb.className='ai-feedback';
-  const prompt=`Eres un experto en DC Comics. El usuario quiere añadir: "${title}"\n\nERAs: PRE(-99 a 0), 00(Crisis), 01(Orígenes post-Crisis 1-10), 02(Era Clásica 10-25), 03(Liga Moderna 25-45), 04(Cierre 45-60), 05(Flashpoint 60-80), EW(Elseworlds 80+)\n\nResponde SOLO con JSON válido sin markdown:\n{"volume":"","arc":"02 — La Era Clásica","lore":"canon|tiein|elseworlds|origen","stars":1-5,"order":14.5,"char":"batman|jla|flash|crisis|ww|titanes|other","writer":"","artist":"","year":1986,"reason":"breve en español"}`;
+  const prompt=`Eres un experto en DC Comics. El usuario quiere añadir: "${title}"
+
+Eras (order en enteros 3 dígitos):
+- PRE (order < 5): Era Pre-Crisis
+- 01 (5-110): Orígenes Post-Crisis
+- 02 (110-250): Era Clásica 80s-90s
+- 03 (250-445): Liga Moderna 2000s
+- 04 (445-600): Cierre pre-New52
+- EW (800+): Elseworlds
+
+Si pertenece a una saga multi-tomo incluí el nombre exacto (ej: "Knightfall", "Batman: Tierra de Nadie", "Batman: Silencio").
+
+Responde SOLO con JSON válido sin markdown:
+{"title":"título exacto en español","volume":"issues o vol","arc":"nombre de era","lore":"canon|tiein|elseworlds|origen","stars":1-5,"order":número entero,"char":"batman|superman|flash|gl|jla|crisis|ww|titanes|other","writer":"guionista","artist":"dibujante","year":año,"saga":"nombre de saga o null","reason":"explicación breve en español"}`;
   try{
-    const res=await fetch(VERCEL_PROXY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:400,messages:[{role:'user',content:prompt}]})});
+    const res=await fetch(VERCEL_PROXY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:400,messages:[{role:'user',content:prompt}]})});
     const data=await res.json();
     const info=JSON.parse(data.content?.map(b=>b.text||'').join('').trim().replace(/```json|```/g,'').trim());
+    if(info.title)  document.getElementById('f-title').value=info.title;
     if(info.volume) document.getElementById('f-volume').value=info.volume;
     if(info.arc)    document.getElementById('f-arc').value=info.arc;
     if(info.lore)   document.getElementById('f-lore').value=info.lore;
@@ -1461,9 +1560,10 @@ async function doAutocomplete(){
     if(info.writer) document.getElementById('f-writer').value=info.writer;
     if(info.artist) document.getElementById('f-artist').value=info.artist;
     if(info.year)   document.getElementById('f-year').value=info.year;
+    if(info.saga)   document.getElementById('f-saga').value=info.saga;
     const em={canon:'🔴',tiein:'🟡',elseworlds:'🟣',origen:'🟢'};
     fb.style.display='block';
-    fb.innerHTML=`<strong>${em[info.lore]||'●'} ${(info.lore||'').toUpperCase()}</strong> · Posición ${info.order}<br><span style="opacity:0.75">${info.reason||''}</span>`;
+    fb.innerHTML=`<strong style="color:var(--text)">${info.title||title}</strong><br><strong>${em[info.lore]||'●'} ${(info.lore||'').toUpperCase()}</strong> · Posición ${info.order}${info.saga?` · Saga: <em>${info.saga}</em>`:''}<br><span style="opacity:0.75">${info.reason||''}</span>`;
     if(info.order) showOrderContext(info.order);
   }catch(e){
     fb.style.display='block';fb.className='ai-feedback error';
