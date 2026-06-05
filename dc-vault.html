@@ -720,14 +720,18 @@ main {
 } display: flex; gap: 8px; align-items: flex-end; margin-bottom: 14px; }
 .btn-ai {
   flex-shrink: 0;
-  background: #12122a; color: var(--gold);
-  border: 1px solid #334499;
-  padding: 10px 14px; border-radius: 10px;
-  font-family: 'Bebas Neue', sans-serif; font-size: 14px;
-  letter-spacing: 0.08em; cursor: pointer;
-  display: flex; align-items: center; gap: 5px;
+  background: var(--gold);
+  color: #111;
+  border: 2px solid #334499;
+  padding: 12px 18px; border-radius: 10px;
+  font-family: 'Bebas Neue', sans-serif; font-size: 16px;
+  letter-spacing: 0.1em; cursor: pointer;
+  display: flex; align-items: center; gap: 6px;
   white-space: nowrap; transition: all 0.2s;
+  box-shadow: 0 2px 12px rgba(200,168,75,0.3);
 }
+.btn-ai:hover { background: var(--gold2); }
+.btn-ai:active { transform: scale(0.96); }
 .btn-ai:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn-ai.loading #ai-icon { animation: spin 1s linear infinite; display: inline-block; }
 @keyframes spin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
@@ -2147,7 +2151,7 @@ async function openDetail(id) {
   const q = encodeURIComponent(c.title);
   const stores = [
     ['Ovni Press', `https://ovnipress.com.ar/?s=${q}&post_type=product`],
-    ['ECC',        `https://www.tiendaecc.com/catalogsearch/result/?q=${q}`],
+    ['ECC',        `https://www.eccediciones.com/?s=${q}`],
     ['Panini',     `https://www.panini.es/shp_esp_es/catalogsearch/result/?q=${q}`],
     ['Google',     `https://www.google.com/search?q=${encodeURIComponent(c.title+' comprar cómic')}`],
   ];
