@@ -911,7 +911,14 @@ main {
           <div class="fl"><label>Año</label><input id="f-year" type="number" placeholder="1986" min="1938" max="2099"></div>
           <div class="fl"><label>Volumen / Issues</label><input id="f-volume" type="text" placeholder="Vol.1 / #1-6"></div>
           <div class="fl"><label>Editorial</label><input id="f-edition" type="text" placeholder="Salvat, ECC…"></div>
-          <div class="fl"><label>ISBN</label><input id="f-isbn" type="text" placeholder="978-84…" autocomplete="off" inputmode="numeric"></div>
+          <div class="fl"><label>ISBN</label>
+            <div style="display:flex;gap:6px;align-items:stretch">
+              <input id="f-isbn" type="text" placeholder="978-84…" autocomplete="off" inputmode="numeric" style="flex:1">
+              <button type="button" class="btn-ai" id="btn-isbn" onclick="lookupISBN()" style="padding:0 12px;font-size:13px">
+                <span id="isbn-icon">⌕</span>
+              </button>
+            </div>
+          </div>
           <div class="fl"><label>Era / Arco</label><input id="f-arc" type="text" placeholder="02 — La Era Clásica…"></div>
           <div class="fl fg-full" id="f-order-wrap">
             <label>Posición en línea de tiempo</label>
@@ -1796,6 +1803,46 @@ function agregarTomosSaga() {
   closeModal();
   render();
 }
+// ── ISBN → DATOS (Google Books) ────────────────────────────────
+async function lookupISBN(){
+  const inp=document.getElementById('f-isbn');
+  const raw=inp.value.trim();
+  const isbn=raw.replace(/[\s-]/g,'');
+  const fb=document.getElementById('ai-feedback');
+  const icon=document.getElementById('isbn-icon');
+  const btn=document.getElementById('btn-isbn');
+  if(isbn.length<10){ inp.focus(); return; }
+
+  btn.disabled=true; icon.textContent='…'; icon.style.animation='spin 1s linear infinite';
+  fb.style.display='none'; fb.className='ai-feedback';
+
+  try{
+    const res=await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
+    const data=await res.json();
+    if(!data.items || !data.items.length) throw new Error('not-found');
+
+    const v=data.items[0].volumeInfo||{};
+    const title=v.title ? (v.subtitle ? `${v.title}: ${v.subtitle}` : v.title) : '';
+    const year=v.publishedDate ? parseInt(v.publishedDate.slice(0,4)) : null;
+    const publisher=v.publisher||'';
+
+    if(title)     document.getElementById('f-title').value=title;
+    if(year)      document.getElementById('f-year').value=year;
+    if(publisher) document.getElementById('f-edition').value=publisher;
+    inp.value=isbn;
+
+    fb.style.display='block';
+    fb.innerHTML=`<strong style="color:var(--text)">${title||'(sin título)'}</strong><br>
+      <span style="opacity:0.75">Google Books · ${[publisher,year].filter(Boolean).join(' · ')||'datos básicos'}</span><br>
+      <span style="opacity:0.6;font-size:11px">Pulsá «Auto» para completar posición, lore y personaje.</span>`;
+  }catch(e){
+    fb.style.display='block'; fb.className='ai-feedback error';
+    fb.textContent='No se encontró ese ISBN en Google Books. Probá con «Auto» desde el título, o cargá los datos manualmente.';
+  }finally{
+    btn.disabled=false; icon.textContent='⌕'; icon.style.animation='';
+  }
+}
+
 async function doAutocomplete(){
   const title=document.getElementById('f-title').value.trim();
   if(!title){document.getElementById('f-title').focus();return;}
@@ -1849,7 +1896,7 @@ Responde SOLO con JSON válido sin markdown:
     if(info.artist) document.getElementById('f-artist').value=info.artist;
     if(info.year)   document.getElementById('f-year').value=info.year;
     if(info.saga)   document.getElementById('f-saga').value=info.saga;
-    if(info.isbn)   document.getElementById('f-isbn').value=String(info.isbn).replace(/[\s-]/g,'');
+    if(info.isbn && !document.getElementById('f-isbn').value.trim()) document.getElementById('f-isbn').value=String(info.isbn).replace(/[\s-]/g,'');
     const em={canon:'🔴',tiein:'🟡',elseworlds:'🟣',origen:'🟢'};
     fb.style.display='block';
     fb.innerHTML=`<strong style="color:var(--text)">${info.title||title}</strong><br><strong>${em[info.lore]||'●'} ${(info.lore||'').toUpperCase()}</strong> · Posición ${info.order}${info.saga?` · Saga: <em>${info.saga}</em>`:''}<br><span style="opacity:0.75">${info.reason||''}</span>`;
