@@ -911,6 +911,7 @@ main {
           <div class="fl"><label>Año</label><input id="f-year" type="number" placeholder="1986" min="1938" max="2099"></div>
           <div class="fl"><label>Volumen / Issues</label><input id="f-volume" type="text" placeholder="Vol.1 / #1-6"></div>
           <div class="fl"><label>Editorial</label><input id="f-edition" type="text" placeholder="Salvat, ECC…"></div>
+          <div class="fl"><label>ISBN</label><input id="f-isbn" type="text" placeholder="978-84…" autocomplete="off" inputmode="numeric"></div>
           <div class="fl"><label>Era / Arco</label><input id="f-arc" type="text" placeholder="02 — La Era Clásica…"></div>
           <div class="fl fg-full" id="f-order-wrap">
             <label>Posición en línea de tiempo</label>
@@ -1301,7 +1302,7 @@ function getVisible() {
   if(activeFilter==='unread')  list = list.filter(c=>c.owned&&!c.read);
   if(activeLore)               list = list.filter(c=>c.lore===activeLore);
   if(activeChar)               list = list.filter(c=>(c.char||'other')===activeChar);
-  if(searchQ){ const q=searchQ.toLowerCase(); list=list.filter(c=>c.title.toLowerCase().includes(q)||(c.arc||'').toLowerCase().includes(q)); }
+  if(searchQ){ const q=searchQ.toLowerCase(); const qn=q.replace(/[\s-]/g,''); list=list.filter(c=>c.title.toLowerCase().includes(q)||(c.arc||'').toLowerCase().includes(q)||(qn.length>=3&&(c.isbn||'').includes(qn))); }
   return list.sort((a,b)=>a.order-b.order);
 }
 
@@ -1534,7 +1535,7 @@ function toggleRead(id){  const c=comics.find(x=>x.id===id); if(c){c.read=!c.rea
 // ── MODAL ─────────────────────────────────────────────────────
 let editId=null;
 function resetForm(){
-  ['f-title','f-volume','f-edition','f-arc','f-order','f-salvat','f-writer','f-artist','f-year','f-saga'].forEach(id=>document.getElementById(id).value='');
+  ['f-title','f-volume','f-edition','f-arc','f-order','f-salvat','f-writer','f-artist','f-year','f-saga','f-isbn'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f-lore').value='canon';
   document.getElementById('f-stars').value='4';
   document.getElementById('f-char').value='batman';
@@ -1581,6 +1582,7 @@ function openEdit(id){
   document.getElementById('f-year').value=c.year||'';
   document.getElementById('f-volume').value=c.volume||'';
   document.getElementById('f-edition').value=c.edition||'';
+  document.getElementById('f-isbn').value=c.isbn||'';
   document.getElementById('f-saga').value=c.saga||'';
   document.getElementById('f-arc').value=c.arc||'';
   document.getElementById('f-order').value=c.order||'';
@@ -1605,6 +1607,7 @@ function saveComic(){
     year:parseInt(document.getElementById('f-year').value)||null,
     volume:document.getElementById('f-volume').value.trim(),
     edition:document.getElementById('f-edition').value.trim(),
+    isbn:document.getElementById('f-isbn').value.trim().replace(/[\s-]/g,''),
     arc:document.getElementById('f-arc').value.trim(),
     order:parseFloat(document.getElementById('f-order').value)||999,
     lore:document.getElementById('f-lore').value,
@@ -1827,8 +1830,10 @@ ${SAGAS_CONOCIDAS}
 
 Si el tomo pertenece a alguna saga conocida o a cualquier otra saga multi-tomo, incluí el nombre exacto de la saga.
 
+Si conocés el ISBN de la edición española (ECC, Salvat, Ovni, Panini, Norma, Planeta), incluilo en "isbn" (solo dígitos, sin guiones). Si no estás seguro del ISBN exacto, devolvé "isbn": null — no lo inventes.
+
 Responde SOLO con JSON válido sin markdown:
-{"title":"título exacto en español","volume":"issues o vol","arc":"nombre de era","lore":"canon|tiein|elseworlds|origen","stars":1-5,"order":número entero,"char":"batman|superman|flash|gl|jla|crisis|ww|titanes|other","writer":"guionista","artist":"dibujante","year":año,"saga":"nombre de saga o null","reason":"explicación breve en español"}`;
+{"title":"título exacto en español","volume":"issues o vol","arc":"nombre de era","lore":"canon|tiein|elseworlds|origen","stars":1-5,"order":número entero,"char":"batman|superman|flash|gl|jla|crisis|ww|titanes|other","writer":"guionista","artist":"dibujante","year":año,"saga":"nombre de saga o null","isbn":"ISBN solo dígitos o null","reason":"explicación breve en español"}`;
   try{
     const res=await fetch(VERCEL_PROXY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:400,messages:[{role:'user',content:prompt}]})});
     const data=await res.json();
@@ -1844,6 +1849,7 @@ Responde SOLO con JSON válido sin markdown:
     if(info.artist) document.getElementById('f-artist').value=info.artist;
     if(info.year)   document.getElementById('f-year').value=info.year;
     if(info.saga)   document.getElementById('f-saga').value=info.saga;
+    if(info.isbn)   document.getElementById('f-isbn').value=String(info.isbn).replace(/[\s-]/g,'');
     const em={canon:'🔴',tiein:'🟡',elseworlds:'🟣',origen:'🟢'};
     fb.style.display='block';
     fb.innerHTML=`<strong style="color:var(--text)">${info.title||title}</strong><br><strong>${em[info.lore]||'●'} ${(info.lore||'').toUpperCase()}</strong> · Posición ${info.order}${info.saga?` · Saga: <em>${info.saga}</em>`:''}<br><span style="opacity:0.75">${info.reason||''}</span>`;
@@ -2136,6 +2142,7 @@ async function openDetail(id) {
     c.edition ? ['Editorial', c.edition] : null,
     c.volume  ? ['Volumen', c.volume]    : null,
     c.issue   ? ['Issues', c.issue]      : null,
+    c.isbn    ? ['ISBN', c.isbn]         : null,
   ].filter(Boolean);
   document.getElementById('d-meta').innerHTML = meta.map(([k,v])=>`
     <div class="d-meta-item"><div class="d-meta-key">${k}</div><div class="d-meta-val">${v}</div></div>
@@ -2144,11 +2151,12 @@ async function openDetail(id) {
   // Status
   updateDetailStatus(c);
 
-  // Tiendas — links de búsqueda directos con formato correcto por editorial
-  const qOvni   = encodeURIComponent(c.title);                          // espacios como %20
-  const qPanini = c.title.replace(/ /g, '+');                           // espacios como +
-  const qECC    = encodeURIComponent(c.title);                          // espacios como %20
-  const qGoogle = encodeURIComponent(c.title + ' cómic edición español');
+  // Tiendas — si hay ISBN, buscamos por ISBN (más preciso); si no, por título
+  const term    = c.isbn ? c.isbn : c.title;
+  const qOvni   = encodeURIComponent(term);                             // espacios como %20
+  const qPanini = term.replace(/ /g, '+');                              // espacios como +
+  const qECC    = encodeURIComponent(term);                            // espacios como %20
+  const qGoogle = encodeURIComponent(c.isbn ? c.isbn + ' cómic' : c.title + ' cómic edición español');
   const stores = [
     ['Ovni Press', `https://www.ovnipress.net/?s=${qOvni}&post_type=product`],
     ['ECC',        `https://www.eccediciones.com/?s=${qECC}`],
