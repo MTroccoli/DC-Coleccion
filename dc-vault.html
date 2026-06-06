@@ -662,62 +662,8 @@ main {
 }
 .sheet-body { padding: 16px 20px 0; }
 
-/* Modal tabs */
-.modal-tabs {
-  display: flex; gap: 6px; margin-bottom: 16px;
-  background: var(--surface2); border-radius: 10px; padding: 4px;
-}
-.modal-tab {
-  flex: 1; padding: 8px; border-radius: 8px; border: none;
-  background: none; color: var(--muted); cursor: pointer;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase;
-  transition: all 0.2s;
-}
-.modal-tab.active {
-  background: var(--gold); color: #111; font-weight: 700;
-}
-
-/* Saga results */
-.saga-tomo-card {
-  background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 10px; padding: 12px 14px; margin-bottom: 8px;
-}
-.saga-tomo-header {
-  display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px;
-}
-.saga-tomo-check {
-  width: 20px; height: 20px; border-radius: 4px;
-  border: 1.5px solid var(--border2); background: none;
-  cursor: pointer; flex-shrink: 0; margin-top: 2px;
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.15s;
-}
-.saga-tomo-check.checked {
-  background: var(--gold); border-color: var(--gold);
-  color: #111; font-size: 12px;
-}
-.saga-tomo-title {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 15px; color: var(--text); line-height: 1.2; flex: 1;
-}
-.saga-tomo-meta {
-  font-size: 11px; color: var(--muted); margin-bottom: 8px;
-  font-style: italic;
-}
-.saga-edition-row {
-  display: flex; gap: 6px; flex-wrap: wrap;
-}
-.saga-edition-btn {
-  padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border2);
-  background: none; color: var(--muted); cursor: pointer;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
-  transition: all 0.15s;
-}
-.saga-edition-btn.selected {
-  background: var(--golddim); border-color: var(--gold); color: var(--gold);
-} display: flex; gap: 8px; align-items: flex-end; margin-bottom: 14px; }
+/* AI row */
+.ai-row { display: flex; gap: 8px; align-items: flex-end; margin-bottom: 14px; }
 .btn-ai {
   flex-shrink: 0;
   background: #12122a; color: var(--gold);
@@ -885,108 +831,79 @@ main {
       <button class="sheet-close" id="modal-close">✕</button>
     </div>
     <div class="sheet-body">
-
-      <!-- TABS -->
-      <div class="modal-tabs">
-        <button class="modal-tab active" id="tab-tomo" onclick="switchTab('tomo')">🔍 Tomo</button>
-        <button class="modal-tab" id="tab-saga" onclick="switchTab('saga')">📚 Saga</button>
-      </div>
-
-      <!-- TAB: TOMO -->
-      <div id="panel-tomo">
-        <div class="ai-row">
-          <div class="fl" style="flex:1">
-            <label>Título del cómic</label>
-            <input id="f-title" type="text" placeholder="Ej: Batman: Noel" autocomplete="off">
-          </div>
-          <button class="btn-ai" id="btn-autocomplete" onclick="doAutocomplete()">
-            <span id="ai-icon">✦</span><span id="ai-label">Auto</span>
-          </button>
+      <div class="ai-row">
+        <div class="fl" style="flex:1">
+          <label>Título del cómic</label>
+          <input id="f-title" type="text" placeholder="Ej: Batman: Noel" autocomplete="off">
         </div>
-        <div id="ai-feedback" class="ai-feedback" style="display:none"></div>
-        <div class="fg">
-          <div class="fl"><label>Guionista</label><input id="f-writer" type="text" placeholder="Frank Miller…"></div>
-          <div class="fl"><label>Dibujante</label><input id="f-artist" type="text" placeholder="Jim Lee…"></div>
-          <div class="fl"><label>Año</label><input id="f-year" type="number" placeholder="1986" min="1938" max="2099"></div>
-          <div class="fl"><label>Volumen / Issues</label><input id="f-volume" type="text" placeholder="Vol.1 / #1-6"></div>
-          <div class="fl"><label>Editorial</label><input id="f-edition" type="text" placeholder="Salvat, ECC…"></div>
-          <div class="fl"><label>Era / Arco</label><input id="f-arc" type="text" placeholder="02 — La Era Clásica…"></div>
-          <div class="fl fg-full" id="f-order-wrap">
-            <label>Posición en línea de tiempo</label>
-            <input id="f-order" type="number" placeholder="145" min="-999" step="1">
-            <div id="order-context" style="display:none;margin-top:6px;border-radius:6px;overflow:hidden;border:1px solid var(--border2);font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:0.04em;"></div>
-          </div>
-          <div class="fl">
-            <label>Lore</label>
-            <select id="f-lore">
-              <option value="canon">🔴 Canon</option>
-              <option value="tiein">🟡 Tie-in</option>
-              <option value="elseworlds">🟣 Elseworlds</option>
-              <option value="origen">🟢 Origen</option>
-            </select>
-          </div>
-          <div class="fl">
-            <label>Importancia</label>
-            <select id="f-stars">
-              <option value="5">★★★★★ Esencial</option>
-              <option value="4">★★★★☆ Muy bueno</option>
-              <option value="3">★★★☆☆ Bueno</option>
-              <option value="2">★★☆☆☆ Opcional</option>
-              <option value="1">★☆☆☆☆ Secundario</option>
-            </select>
-          </div>
-          <div class="fl">
-            <label>Nº Salvat</label>
-            <input id="f-salvat" type="number" placeholder="1" min="1">
-          </div>
-          <div class="fl">
-            <label>Personaje</label>
-            <select id="f-char">
-              <option value="batman">Batman</option>
-              <option value="superman">Superman</option>
-              <option value="flash">Flash</option>
-              <option value="gl">Green Lantern</option>
-              <option value="ww">Wonder Woman</option>
-              <option value="jla">JLA / Liga</option>
-              <option value="titanes">Titanes</option>
-              <option value="crisis">Crisis / Evento</option>
-              <option value="other">Otro</option>
-            </select>
-          </div>
-          <div class="fl fg-full">
-            <label>Saga (si pertenece a una)</label>
-            <input id="f-saga" type="text" placeholder="Knightfall, Tierra de Nadie…" list="saga-list" autocomplete="off">
-            <datalist id="saga-list"></datalist>
-          </div>
-          <div class="fl fg-full">
-            <label>Estado</label>
-            <div class="checkrow">
-              <div class="toggle-pill" id="tp-owned" onclick="togglePill('owned')">
-                <span class="toggle-pill-dot"></span><span class="toggle-pill-lbl">Lo tengo</span>
-              </div>
-              <div class="toggle-pill" id="tp-read" onclick="togglePill('read')">
-                <span class="toggle-pill-dot"></span><span class="toggle-pill-lbl">Ya lo leí</span>
-              </div>
+        <button class="btn-ai" id="btn-autocomplete" onclick="doAutocomplete()">
+          <span id="ai-icon">✦</span><span id="ai-label">Auto</span>
+        </button>
+      </div>
+      <div id="ai-feedback" class="ai-feedback" style="display:none"></div>
+      <div class="fg">
+        <div class="fl"><label>Guionista</label><input id="f-writer" type="text" placeholder="Frank Miller…"></div>
+        <div class="fl"><label>Dibujante</label><input id="f-artist" type="text" placeholder="Jim Lee…"></div>
+        <div class="fl"><label>Año</label><input id="f-year" type="number" placeholder="1986" min="1938" max="2099"></div>
+        <div class="fl"><label>Volumen / Issues</label><input id="f-volume" type="text" placeholder="Vol.1 / #1-6"></div>
+        <div class="fl"><label>Editorial</label><input id="f-edition" type="text" placeholder="Salvat, ECC…"></div>
+        <div class="fl"><label>Era / Arco</label><input id="f-arc" type="text" placeholder="02 — La Era Clásica…"></div>
+        <div class="fl fg-full" id="f-order-wrap">
+          <label>Posición en línea de tiempo</label>
+          <input id="f-order" type="number" placeholder="14.5" min="-99" step="0.5">
+          <div id="order-context" style="display:none;margin-top:6px;border-radius:6px;overflow:hidden;border:1px solid var(--border2);font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:0.04em;"></div>
+        </div>
+        <div class="fl">
+          <label>Lore</label>
+          <select id="f-lore">
+            <option value="canon">🔴 Canon</option>
+            <option value="tiein">🟡 Tie-in</option>
+            <option value="elseworlds">🟣 Elseworlds</option>
+            <option value="origen">🟢 Origen</option>
+          </select>
+        </div>
+        <div class="fl">
+          <label>Importancia</label>
+          <select id="f-stars">
+            <option value="5">★★★★★ Esencial</option>
+            <option value="4">★★★★☆ Muy bueno</option>
+            <option value="3">★★★☆☆ Bueno</option>
+            <option value="2">★★☆☆☆ Opcional</option>
+            <option value="1">★☆☆☆☆ Secundario</option>
+          </select>
+        </div>
+        <div class="fl">
+          <label>Nº Salvat</label>
+          <input id="f-salvat" type="number" placeholder="1" min="1">
+        </div>
+        <div class="fl">
+          <label>Personaje</label>
+          <select id="f-char">
+            <option value="batman">Batman</option>
+            <option value="superman">Superman</option>
+            <option value="flash">Flash</option>
+            <option value="gl">Green Lantern</option>
+            <option value="ww">Wonder Woman</option>
+            <option value="jla">JLA / Liga</option>
+            <option value="titanes">Titanes</option>
+            <option value="crisis">Crisis / Evento</option>
+            <option value="other">Otro</option>
+          </select>
+        </div>
+        <div class="fl fg-full">
+          <label>Saga (si pertenece a una)</label>
+          <input id="f-saga" type="text" placeholder="Knightfall, Tierra de Nadie…">
+        </div>
+        <div class="fl fg-full">
+          <label>Estado</label>
+          <div class="checkrow">
+            <div class="toggle-pill" id="tp-owned" onclick="togglePill('owned')">
+              <span class="toggle-pill-dot"></span><span class="toggle-pill-lbl">Lo tengo</span>
+            </div>
+            <div class="toggle-pill" id="tp-read" onclick="togglePill('read')">
+              <span class="toggle-pill-dot"></span><span class="toggle-pill-lbl">Ya lo leí</span>
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- TAB: SAGA -->
-      <div id="panel-saga" style="display:none">
-        <div class="ai-row">
-          <div class="fl" style="flex:1">
-            <label>Nombre de la saga</label>
-            <input id="saga-search-input" type="text" placeholder="Flash velocidad, Tierra de Nadie…" autocomplete="off">
-          </div>
-          <button class="btn-ai" id="btn-saga-search" onclick="buscarSaga()">
-            <span id="saga-icon">✦</span><span id="saga-label">Buscar</span>
-          </button>
-        </div>
-        <div id="saga-feedback" class="ai-feedback" style="display:none"></div>
-        <div id="saga-results" style="display:none"></div>
-        <div id="saga-add-btn-wrap" style="display:none;padding-top:12px">
-          <button class="btn-save" style="width:100%" onclick="agregarTomosSaga()">AGREGAR SELECCIONADOS</button>
         </div>
       </div>
     </div>
@@ -1558,30 +1475,22 @@ function togglePill(key) {
   if(el) el.classList.toggle('on');
 }
 function openAdd(){
-  editId=null; resetForm(); modalOpen=true;
+  editId=null; resetForm();
   document.getElementById('modal-heading').textContent='Añadir tomo';
   document.getElementById('btn-autocomplete').style.display='flex';
-  document.querySelector('.modal-tabs').style.display='flex';
-  switchTab('tomo');
-  updateSagaDatalist();
   document.getElementById('modal').classList.add('open');
   setTimeout(()=>document.getElementById('f-title').focus(),400);
 }
 function openEdit(id){
-  editId=id; modalOpen=true;
-  const c=comics.find(x=>x.id===id);
+  editId=id; const c=comics.find(x=>x.id===id);
   document.getElementById('modal-heading').textContent='Editar';
-  // Hide saga tab when editing
-  document.querySelector('.modal-tabs').style.display='none';
-  switchTab('tomo');
   document.getElementById('f-title').value=c.title;
   document.getElementById('f-writer').value=c.writer||'';
   document.getElementById('f-artist').value=c.artist||'';
   document.getElementById('f-year').value=c.year||'';
   document.getElementById('f-volume').value=c.volume||'';
   document.getElementById('f-edition').value=c.edition||'';
-  document.getElementById('f-saga').value=c.saga||'';
-  document.getElementById('f-arc').value=c.arc||'';
+  document.getElementById('f-saga').value    = c.saga||'';
   document.getElementById('f-order').value=c.order||'';
   document.getElementById('f-lore').value=c.lore||'canon';
   document.getElementById('f-stars').value=c.stars||4;
@@ -1591,10 +1500,9 @@ function openEdit(id){
   setPill('read', !!c.read);
   document.getElementById('ai-feedback').style.display='none';
   document.getElementById('btn-autocomplete').style.display='none';
-  updateSagaDatalist();
   document.getElementById('modal').classList.add('open');
 }
-function closeModal(){ document.getElementById('modal').classList.remove('open'); editId=null; modalOpen=false; }
+function closeModal(){ document.getElementById('modal').classList.remove('open'); editId=null; }
 function saveComic(){
   const title=document.getElementById('f-title').value.trim();
   if(!title){document.getElementById('f-title').focus();return;}
@@ -1619,179 +1527,7 @@ function saveComic(){
   saveState();closeModal();render();
 }
 
-// ── MODAL TABS ─────────────────────────────────────────────────
-function switchTab(tab) {
-  document.getElementById('panel-tomo').style.display = tab==='tomo' ? '' : 'none';
-  document.getElementById('panel-saga').style.display = tab==='saga' ? '' : 'none';
-  document.getElementById('tab-tomo').classList.toggle('active', tab==='tomo');
-  document.getElementById('tab-saga').classList.toggle('active', tab==='saga');
-  // Hide saga tab when editing
-  if(tab==='saga') {
-    document.getElementById('saga-results').style.display = 'none';
-    document.getElementById('saga-add-btn-wrap').style.display = 'none';
-    document.getElementById('saga-feedback').style.display = 'none';
-  }
-}
-
-// ── DATALIST: sagas existentes ─────────────────────────────────
-function updateSagaDatalist() {
-  const sagas = [...new Set(comics.map(c=>c.saga).filter(Boolean))].sort();
-  const dl = document.getElementById('saga-list');
-  if(dl) dl.innerHTML = sagas.map(s=>`<option value="${s}">`).join('');
-}
-
-// ── BUSCAR SAGA (Sonnet) ────────────────────────────────────────
-let sagaResults = [];
-
-async function buscarSaga() {
-  const query = document.getElementById('saga-search-input').value.trim();
-  if(!query) return;
-  const btn = document.getElementById('btn-saga-search');
-  const fb  = document.getElementById('saga-feedback');
-  const res = document.getElementById('saga-results');
-  const addWrap = document.getElementById('saga-add-btn-wrap');
-
-  btn.disabled=true;
-  document.getElementById('saga-icon').style.animation='spin 1s linear infinite';
-  document.getElementById('saga-label').textContent='…';
-  fb.style.display='none'; res.style.display='none'; addWrap.style.display='none';
-
-  try {
-    const prompt = `Eres un experto en DC Comics. El usuario busca la saga: "${query}"
-
-Devolvé la lista completa de tomos de esa saga en orden de lectura.
-Para cada tomo incluí las editoriales españolas disponibles: Ovni Press, ECC Ediciones, Panini, Norma, Planeta. Si no hay edición española de alguna editorial, no la incluyas.
-
-Responde SOLO con JSON válido sin markdown:
-{
-  "saga": "nombre exacto de la saga",
-  "descripcion": "descripción breve de la saga en español",
-  "char": "batman|superman|flash|gl|jla|crisis|ww|titanes|other",
-  "arc": "era donde va ej: 02 — La Era Clásica",
-  "lore": "canon|tiein|elseworlds|origen",
-  "tomos": [
-    {
-      "titulo": "título exacto en español",
-      "order": número entero (usa rangos: Pre<5, 01=5-110, 02=110-250, 03=250-445, 04=445-600, EW=800+),
-      "year": año,
-      "writer": "guionista",
-      "artist": "dibujante",
-      "issue": "issues originales",
-      "editoriales": ["Ovni Press", "ECC"]
-    }
-  ]
-}`;
-
-    const response = await fetch(VERCEL_PROXY, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
-        max_tokens: 2000,
-        messages: [{role:'user', content:prompt}]
-      })
-    });
-    const data = await response.json();
-    const info = JSON.parse(data.content?.map(b=>b.text||'').join('').trim().replace(/```json|```/g,'').trim());
-
-    sagaResults = info.tomos.map((t,i) => ({...t, _idx:i, _checked:true, _edition: t.editoriales?.[0]||''}));
-
-    // Render results
-    res.innerHTML = `
-      <div style="padding:8px 0 12px">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--gold);letter-spacing:0.06em">${info.saga}</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:2px;font-style:italic">${info.descripcion}</div>
-        <div style="font-size:11px;color:var(--dim);margin-top:4px">${info.tomos.length} tomos · ${info.arc}</div>
-      </div>
-      ${sagaResults.map((t,i) => `
-        <div class="saga-tomo-card" id="stc-${i}">
-          <div class="saga-tomo-header">
-            <div class="saga-tomo-check checked" id="stcheck-${i}" onclick="toggleSagaTomo(${i})">✓</div>
-            <div>
-              <div class="saga-tomo-title">${t.titulo}</div>
-              <div class="saga-tomo-meta">${t.writer||''} · ${t.year||''} · ${t.issue||''}</div>
-            </div>
-          </div>
-          ${t.editoriales && t.editoriales.length ? `
-            <div class="saga-edition-row">
-              ${t.editoriales.map(ed=>`
-                <button class="saga-edition-btn ${t._edition===ed?'selected':''}"
-                  onclick="selectEdition(${i},'${ed}')">${ed}</button>
-              `).join('')}
-              <button class="saga-edition-btn ${t._edition===''?'selected':''}"
-                onclick="selectEdition(${i},'')">Sin especificar</button>
-            </div>
-          ` : `<div style="font-size:11px;color:var(--dim)">Sin edición en español confirmada</div>`}
-        </div>
-      `).join('')}
-    `;
-    res.style.display='block';
-    addWrap.style.display='block';
-
-  } catch(e) {
-    fb.textContent = 'No se pudo buscar la saga. Intentá de nuevo.';
-    fb.className = 'ai-feedback error';
-    fb.style.display = 'block';
-  } finally {
-    btn.disabled=false;
-    document.getElementById('saga-icon').style.animation='';
-    document.getElementById('saga-label').textContent='Buscar';
-  }
-}
-
-function toggleSagaTomo(i) {
-  sagaResults[i]._checked = !sagaResults[i]._checked;
-  const check = document.getElementById(`stcheck-${i}`);
-  const card  = document.getElementById(`stc-${i}`);
-  check.classList.toggle('checked', sagaResults[i]._checked);
-  check.textContent = sagaResults[i]._checked ? '✓' : '';
-  card.style.opacity = sagaResults[i]._checked ? '1' : '0.4';
-}
-
-function selectEdition(i, ed) {
-  sagaResults[i]._edition = ed;
-  const card = document.getElementById(`stc-${i}`);
-  card.querySelectorAll('.saga-edition-btn').forEach(btn => {
-    btn.classList.toggle('selected', btn.textContent.trim()===ed || (ed==='' && btn.textContent.trim()==='Sin especificar'));
-  });
-}
-
-function agregarTomosSaga() {
-  const selected = sagaResults.filter(t => t._checked);
-  if(!selected.length) return;
-
-  // Get saga name from search results header
-  const sagaNombre = document.querySelector('#saga-results div div')?.textContent?.trim() || document.getElementById('saga-search-input').value.trim();
-
-  selected.forEach(t => {
-    // Check if already exists by title similarity
-    const exists = comics.some(c => c.title.toLowerCase() === t.titulo.toLowerCase());
-    if(exists) return;
-
-    comics.push({
-      id: 'manual-' + Date.now() + Math.random().toString(36).substr(2,4),
-      title: t.titulo,
-      writer: t.writer||'',
-      artist: t.artist||'',
-      year: t.year||null,
-      volume: '',
-      edition: t._edition||'',
-      arc: '',
-      order: t.order||999,
-      lore: 'canon',
-      stars: 4,
-      salvat: null,
-      char: 'batman',
-      saga: sagaNombre,
-      owned: false,
-      read: false,
-      issue: t.issue||''
-    });
-  });
-
-  saveState();
-  closeModal();
-  render();
-}
+// ── AI AUTOCOMPLETE ───────────────────────────────────────────
 async function doAutocomplete(){
   const title=document.getElementById('f-title').value.trim();
   if(!title){document.getElementById('f-title').focus();return;}
