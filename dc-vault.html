@@ -1817,14 +1817,22 @@ async function lookupISBN(){
   fb.style.display='none'; fb.className='ai-feedback';
 
   try{
-    const res=await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
+    const res=await fetch(VERCEL_PROXY,{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ isbn })
+    });
+    if(!res.ok) throw new Error('proxy '+res.status);
     const data=await res.json();
-    if(!data.items || !data.items.length) throw new Error('not-found');
+    if(!data.found) {
+      fb.style.display='block'; fb.className='ai-feedback error';
+      fb.innerHTML=`Google Books no tiene ese ISBN (<strong>${isbn}</strong>).<br>
+        <span style="opacity:0.7;font-size:11px">Verificá los dígitos, o cargá el título y pulsá «Auto».</span>`;
+      return;
+    }
 
-    const v=data.items[0].volumeInfo||{};
-    const title=v.title ? (v.subtitle ? `${v.title}: ${v.subtitle}` : v.title) : '';
-    const year=v.publishedDate ? parseInt(v.publishedDate.slice(0,4)) : null;
-    const publisher=v.publisher||'';
+    const title=data.title||'';
+    const year=data.year||null;
+    const publisher=data.publisher||'';
 
     if(title)     document.getElementById('f-title').value=title;
     if(year)      document.getElementById('f-year').value=year;
@@ -1837,7 +1845,8 @@ async function lookupISBN(){
       <span style="opacity:0.6;font-size:11px">Pulsá «Auto» para completar posición, lore y personaje.</span>`;
   }catch(e){
     fb.style.display='block'; fb.className='ai-feedback error';
-    fb.textContent='No se encontró ese ISBN en Google Books. Probá con «Auto» desde el título, o cargá los datos manualmente.';
+    fb.innerHTML=`No se pudo conectar para buscar el ISBN.<br>
+      <span style="opacity:0.7;font-size:11px">Revisá tu conexión, o cargá el título y pulsá «Auto».</span>`;
   }finally{
     btn.disabled=false; icon.textContent='⌕'; icon.style.animation='';
   }
