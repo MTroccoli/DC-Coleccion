@@ -1,3 +1,40 @@
+
+Todos los proyectos
+Cómics DC
+Ordenar la lectura y generar un trak de las ediciones leídas y por leer
+
+
+
+¿Cómo puedo ayudarle hoy?
+
+
+DC Comics
+Último mensaje hace 22 horas
+Revertir cambios en GitHub a versión anterior
+Último mensaje 28 may
+Orden de tomos Batman en Supabase
+Último mensaje 27 may
+Memoria
+Solo tú
+Purpose & context Matias is building a personal DC Comics collection management web app called DC Vault — a single HTML file using Supabase as the backend. The app tracks his Batman and DC Comics collection, organized by eras with accordion sections. A key feature is an AI autocomplete that suggests timeline positioning for new comics. The project is actively evolving with ongoing feature additions and refinements. Current state The app has recently undergone several fixes and improvements: toggle pills for ownership/read status ("Lo tengo" / "Ya lo leí"), accordion collapse behavior (starts collapsed on load), and an order-editing UI that shows neighboring comics in context (highlighted gold field, three-row display updating in real time). A file-reverting incident occurred after changes broke the background image feature and a position-editing control; Matias resolved this by restoring a prior version from GitHub commit history. Matias is actively curating the reading list — La Broma Asesina and several other essential DC titles (KnightsEnd, Kingdom Come, Superman: Hijo Rojo, Crisis de Identidad, Blackest Night, No Man's Land, Batman Legends Vol. 2) have been identified for inclusion. ISBNs for Spanish-language ECC editions were researched. On the horizon Continued expansion of the comics catalog with missing essential titles. Potential further UI/UX refinements as the collection grows. Key learnings & principles Boolean logic bugs (e.g., !== false vs === true) can cause subtle accordion/toggle misbehavior — worth double-checking condition polarity in toggle-heavy UI. GitHub's "Browse files" button (from the diff/commit view) is the correct path to reach raw file content for a given historical state. Approach & patterns Matias works step-by-step and practically, preferring explicit next-action guidance and visual confirmation at each stage rather than upfront comprehensive instructions. Iterative development style: features are added and debugged sequentially within sessions. The collection is curated in Spanish, using ECC editions where available. Tools & resources DC Vault: single-file HTML app hosted/versioned on GitHub Supabase: backend database ECC Ediciones: primary source for Spanish-language DC Comics editions
+
+Última actualización hace 20 horas
+
+Instrucciones
+Eres un experto en lo que respecta al mundo de superhéroes DC. Conoces tanto de los cómics como del Lore principal y las películas y series.
+
+Archivos
+2% de la capacidad del proyecto utilizada
+
+dc-vault.html 5.txt
+2,225 líneas
+
+txt
+
+
+icon.png
+
+dc-vault.html 5.txt
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -56,7 +93,7 @@ body {
   overflow-x: hidden;
   padding-bottom: calc(80px + var(--safe-bot));
 }
-
+ 
 /* ── HEADER / BANNER ── */
 .app-header {
   position: relative;
@@ -101,7 +138,7 @@ body {
   margin-left: auto;
   line-height: 1;
 }
-
+ 
 .header-content {
   position: absolute; bottom: 0; left: 0; right: 0;
   padding: 0 20px 16px;
@@ -115,7 +152,7 @@ body {
   text-shadow: 0 2px 20px rgba(0,0,0,0.9);
 }
 .header-app-name span { color: var(--gold); }
-
+ 
 .stats-row {
   display: flex; gap: 0;
   margin-top: 12px;
@@ -164,7 +201,7 @@ body {
   font-size: 13px; color: var(--gold);
   letter-spacing: 0.05em; flex-shrink: 0;
 }
-
+ 
 /* ── FILTER SCROLL ── */
 .filter-section {
   background: var(--surface);
@@ -202,7 +239,7 @@ body {
 .pill-tiein.active    { background: var(--yellow); border-color: var(--yellow); color: #111; }
 .pill-elseworlds.active{background: var(--purple); border-color: var(--purple); color: #fff; }
 .pill-origen.active   { background: var(--green);  border-color: var(--green);  color: #fff; }
-
+ 
 /* search inline */
 .search-pill {
   display: flex; align-items: center; gap: 6px;
@@ -221,12 +258,12 @@ body {
 }
 .search-pill input:focus { width: 130px; }
 .search-pill input::placeholder { color: var(--dim); }
-
+ 
 /* ── MAIN CONTENT ── */
 main {
   padding: 12px 0 20px;
 }
-
+ 
 /* ── ERA SECTION ── */
 .era-block { margin-bottom: 6px; }
 .era-toggle {
@@ -266,14 +303,14 @@ main {
   flex-shrink: 0; opacity: 0.5;
 }
 .era-block.collapsed .era-chevron { transform: rotate(-90deg); }
-
+ 
 .era-body {
   overflow: hidden;
   max-height: 9999px;
   transition: max-height 0.35s cubic-bezier(.4,0,.2,1);
 }
 .era-block.collapsed .era-body { max-height: 0; }
-
+ 
 .era-reset-banner {
   margin: 0 16px 6px;
   background: linear-gradient(90deg, #cc333318, transparent);
@@ -284,13 +321,13 @@ main {
   font-family: 'Barlow Condensed', sans-serif;
   letter-spacing: 0.06em; text-transform: uppercase;
 }
-
+ 
 .era-desc-inline {
   font-size: 12px; font-style: italic;
   color: var(--muted); line-height: 1.5;
   padding: 0 20px 10px;
 }
-
+ 
 /* Banner de reseteo que aparece al final de un tomo evento */
 .reset-banner-inline {
   margin: 2px 16px 8px;
@@ -312,10 +349,10 @@ main {
 .swipe-wrap.reset-tome .card-title {
   color: #f0a0a0;
 }
-
+ 
 /* ── CARDS ── */
 .card-list { display: flex; flex-direction: column; gap: 1px; padding-bottom: 4px; }
-
+ 
 .swipe-wrap { position: relative; overflow: hidden; }
 .delete-confirm {
   display: none; align-items: center; justify-content: space-between;
@@ -328,7 +365,7 @@ main {
 .swipe-wrap.confirm-delete .comic-card { pointer-events: none; opacity: 0.5; }
 .btn-confirm-del { background: var(--red); color: #fff; border: none; padding: 6px 16px; border-radius: 6px; font-family: 'Bebas Neue', sans-serif; font-size: 14px; cursor: pointer; letter-spacing: 0.06em; }
 .btn-cancel-del  { background: none; border: 1px solid var(--border2); color: var(--muted); padding: 6px 14px; border-radius: 6px; font-family: 'Bebas Neue', sans-serif; font-size: 14px; cursor: pointer; letter-spacing: 0.06em; }
-
+ 
 .comic-card {
   background: var(--surface);
   display: flex; align-items: stretch;
@@ -341,7 +378,7 @@ main {
 .comic-card.is-read .card-title { opacity: 1; color: var(--muted); }
 .comic-card.is-read .card-color-bar { opacity: 0.4; }
 .comic-card.is-read .card-logo { opacity: 0.35; }
-
+ 
 .card-color-bar { width: 3px; flex-shrink: 0; }
 .card-pos {
   font-family: 'Bebas Neue', sans-serif;
@@ -391,7 +428,7 @@ main {
 }
 .card-stars { font-size: 10px; color: var(--gold); letter-spacing: -1px; }
 .stars-dim { color: var(--border2); }
-
+ 
 .card-actions {
   flex-shrink: 0;
   display: flex; flex-direction: column;
@@ -416,7 +453,7 @@ main {
   display: block; flex-shrink: 0;
 }
 .dot-owned.yes { background: var(--gold); border-color: var(--gold); box-shadow: 0 0 8px rgba(200,168,75,0.4); }
-
+ 
 .toggle-read {
   width: 34px; height: 20px; border-radius: 10px;
   background: var(--surface3); border: 1px solid var(--border2);
@@ -431,14 +468,14 @@ main {
 }
 .toggle-read.yes { background: #2a8a5028; border-color: var(--green); }
 .toggle-read.yes::after { left: 17px; background: var(--green); }
-
+ 
 .edit-btn {
   background: none; border: none; color: var(--dim);
   font-size: 14px; cursor: pointer; padding: 2px;
   transition: color 0.15s;
 }
 .edit-btn:active { color: var(--gold); }
-
+ 
 /* hero filter second row */
 .filter-scroll-heroes {
   display: flex; gap: 6px;
@@ -462,14 +499,14 @@ main {
 .pill-hero:active { transform: scale(0.95); }
 .pill-hero.active { border-color: currentColor; opacity: 1; }
 .pill-hero svg { flex-shrink: 0; }
-
+ 
 /* card logo */
 .card-logo {
   width: 32px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
   padding: 0 2px;
 }
-
+ 
 /* search FAB */
 .fab-search {
   position: fixed;
@@ -488,7 +525,7 @@ main {
 }
 .fab-search:active { transform: scale(0.92); }
 .fab-search.active { background: var(--gold); color: #111; border-color: var(--gold); }
-
+ 
 /* search overlay */
 .search-overlay {
   position: fixed;
@@ -526,7 +563,7 @@ main {
   line-height: 1; display: none; flex-shrink: 0;
 }
 .search-clear.visible { display: block; }
-
+ 
 /* ── BOTTOM NAV ── */
 .bottom-nav {
   position: fixed; bottom: 0; left: 0; right: 0;
@@ -561,7 +598,7 @@ main {
 }
 .nav-item.active .nav-icon { filter: drop-shadow(0 0 4px rgba(200,168,75,0.6)); }
 .nav-item.active .nav-label { color: var(--gold); }
-
+ 
 /* FAB — add button */
 .fab {
   position: fixed;
@@ -579,7 +616,7 @@ main {
   font-family: sans-serif;
 }
 .fab:active { transform: scale(0.92); background: var(--gold2); }
-
+ 
 /* ── EMPTY ── */
 /* ── SAGA ACCORDION ── */
 .saga-block { margin-bottom: 2px; }
@@ -608,11 +645,11 @@ main {
 .saga-block.collapsed .saga-chevron { transform: rotate(-90deg); }
 .saga-body { overflow: hidden; max-height: 9999px; transition: max-height 0.3s ease; }
 .saga-block.collapsed .saga-body { max-height: 0; }
-
+ 
 .empty { text-align: center; padding: 60px 20px; }
 .empty-big { font-family: 'Bebas Neue', sans-serif; font-size: 56px; color: var(--dim); }
 .empty-sub { font-size: 13px; color: var(--muted); margin-top: 6px; }
-
+ 
 /* ── SHEET MODAL (slides from bottom) ── */
 .sheet-bg {
   display: none; position: fixed; inset: 0;
@@ -661,7 +698,7 @@ main {
   cursor: pointer; display: flex; align-items: center; justify-content: center;
 }
 .sheet-body { padding: 16px 20px 0; }
-
+ 
 /* Modal tabs */
 .modal-tabs {
   display: flex; gap: 6px; margin-bottom: 16px;
@@ -677,7 +714,7 @@ main {
 .modal-tab.active {
   background: var(--gold); color: #111; font-weight: 700;
 }
-
+ 
 /* Saga results */
 .saga-tomo-card {
   background: var(--surface2); border: 1px solid var(--border);
@@ -720,18 +757,14 @@ main {
 } display: flex; gap: 8px; align-items: flex-end; margin-bottom: 14px; }
 .btn-ai {
   flex-shrink: 0;
-  background: var(--gold);
-  color: #111;
-  border: 2px solid #334499;
-  padding: 12px 18px; border-radius: 10px;
-  font-family: 'Bebas Neue', sans-serif; font-size: 16px;
-  letter-spacing: 0.1em; cursor: pointer;
-  display: flex; align-items: center; gap: 6px;
+  background: #12122a; color: var(--gold);
+  border: 1px solid #334499;
+  padding: 10px 14px; border-radius: 10px;
+  font-family: 'Bebas Neue', sans-serif; font-size: 14px;
+  letter-spacing: 0.08em; cursor: pointer;
+  display: flex; align-items: center; gap: 5px;
   white-space: nowrap; transition: all 0.2s;
-  box-shadow: 0 2px 12px rgba(200,168,75,0.3);
 }
-.btn-ai:hover { background: var(--gold2); }
-.btn-ai:active { transform: scale(0.96); }
 .btn-ai:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn-ai.loading #ai-icon { animation: spin 1s linear infinite; display: inline-block; }
 @keyframes spin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
@@ -742,7 +775,7 @@ main {
   color: #8899dd; line-height: 1.5;
 }
 .ai-feedback.error { background: #221010; border-color: #553333; color: #cc6666; }
-
+ 
 /* Form grid */
 .fg { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .fg-full { grid-column: 1/-1; }
@@ -809,7 +842,7 @@ main {
   transition: background 0.15s;
 }
 .btn-save:active { background: var(--gold2); }
-
+ 
 /* scrollbar */
 ::-webkit-scrollbar { width: 2px; }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 1px; }
@@ -817,7 +850,7 @@ main {
 </style>
 </head>
 <body>
-
+ 
 <!-- ── HEADER ── -->
 <div class="app-header">
   <div class="header-bg"></div>
@@ -851,7 +884,7 @@ main {
     </div>
   </div>
 </div>
-
+ 
 <!-- ── FILTER BAR ── -->
 <div class="filter-section">
   <div class="filter-scroll">
@@ -867,13 +900,13 @@ main {
   </div>
   <div class="filter-scroll-heroes" id="hero-filters"></div>
 </div>
-
+ 
 <!-- ── MAIN ── -->
 <main><div id="root"></div></main>
-
+ 
 <!-- ── FAB ── -->
 <button class="fab" id="btn-add">＋</button>
-
+ 
 <!-- ── SEARCH FAB ── -->
 <div class="search-overlay" id="search-overlay">
   <span>⌕</span>
@@ -889,13 +922,13 @@ main {
       <button class="sheet-close" id="modal-close">✕</button>
     </div>
     <div class="sheet-body">
-
+ 
       <!-- TABS -->
       <div class="modal-tabs">
         <button class="modal-tab active" id="tab-tomo" onclick="switchTab('tomo')">🔍 Tomo</button>
         <button class="modal-tab" id="tab-saga" onclick="switchTab('saga')">📚 Saga</button>
       </div>
-
+ 
       <!-- TAB: TOMO -->
       <div id="panel-tomo">
         <div class="ai-row">
@@ -975,7 +1008,7 @@ main {
           </div>
         </div>
       </div>
-
+ 
       <!-- TAB: SAGA -->
       <div id="panel-saga" style="display:none">
         <div class="ai-row">
@@ -1000,7 +1033,7 @@ main {
     </div>
   </div>
 </div>
-
+ 
 <script>
 // ── ERAS ──────────────────────────────────────────────────────
 const ERAS = [
@@ -1011,17 +1044,17 @@ const ERAS = [
   { key:'E4', num:'04',  name:'El Cierre de Una Era', desc:'Silencio, Batman e Hijo, Flash Renacimiento. La era pre-New 52 llega a su clímax con Flashpoint.', reset:null, oMin:445, oMax:600 },
   { key:'EW', num:'∞',   name:'Elseworlds', desc:'Historias alternativas fuera del canon. Leer en cualquier momento.', reset:null, oMin:600, oMax:99999 },
 ];
-
+ 
 // Tomos que son "eventos de reseteo" — se muestran como banner especial al final de su era
 const RESET_TOMES = {
   'x-crisis': '⚡ Crisis en Tierras Infinitas cierra esta era y reconstruye todo el multiverso DC',
   'x-fp':     '⚡ Flashpoint cierra la era clásica y abre el New 52',
 };
-
+ 
 const CHAR_COLORS = { batman:'var(--col-batman)', superman:'var(--col-superman)', flash:'var(--col-flash)', crisis:'var(--col-crisis)', jla:'var(--col-jla)', ww:'var(--col-ww)', gl:'var(--col-gl)', titanes:'var(--col-titanes)', salvat:'var(--col-salvat)', other:'var(--col-other)' };
 const CHAR_LABELS = { batman:'Batman', superman:'Superman', flash:'Flash', crisis:'Crisis', jla:'JLA', ww:'Wonder Woman', gl:'Green Lantern', titanes:'Titanes', salvat:'Salvat', other:'Otro' };
 const LORE_LABELS = { canon:'Canon', tiein:'Tie-in', elseworlds:'Elseworlds', origen:'Origen' };
-
+ 
 // ── HERO LOGOS (inline SVG strings) ──────────────────────────
 const HERO_LOGOS = {
   batman: (c,s=28)=>`<svg viewBox="0 0 120 80" width="${s*1.5}" height="${s}" xmlns="http://www.w3.org/2000/svg">
@@ -1033,43 +1066,43 @@ const HERO_LOGOS = {
     <ellipse cx="60" cy="36" rx="11" ry="10" fill="${c}"/>
     <path d="M50 35 Q55 32 60 35 Q65 32 70 35 Q68 40 60 40 Q52 40 50 35Z" fill="#101010" opacity="0.45"/>
   </svg>`,
-
+ 
   superman: (c,s=28)=>`<svg viewBox="0 0 64 60" width="${s}" height="${s*0.94}" xmlns="http://www.w3.org/2000/svg">
     <defs><clipPath id="sc-${s}"><polygon points="4,8 60,8 48,56 16,56"/></clipPath></defs>
     <polygon points="4,8 60,8 48,56 16,56" fill="#0e2347" stroke="${c}" stroke-width="2"/>
     <text x="32" y="50" font-family="'Cinzel',serif" font-size="46" font-weight="900" fill="${c}" text-anchor="middle" clip-path="url(#sc-${s})">S</text>
     <polygon points="4,8 60,8 48,56 16,56" fill="none" stroke="${c}" stroke-width="1" opacity="0.4"/>
   </svg>`,
-
+ 
   flash: (c,s=28)=>`<svg viewBox="0 0 60 60" width="${s}" height="${s}" xmlns="http://www.w3.org/2000/svg">
     <circle cx="30" cy="30" r="27" fill="${c}" opacity="0.12" stroke="${c}" stroke-width="1.5"/>
     <path d="M36 8 L20 32 L30 32 L24 52 L44 26 L33 26 Z" fill="${c}"/>
   </svg>`,
-
+ 
   jla: (c,s=28)=>`<svg viewBox="0 0 64 64" width="${s}" height="${s}" xmlns="http://www.w3.org/2000/svg">
     <circle cx="32" cy="32" r="28" fill="#1c1c1c" stroke="${c}" stroke-width="2"/>
     <polygon points="32,8 33.2,12 37,12 34,14.5 35.2,18.5 32,16 28.8,18.5 30,14.5 27,12 30.8,12" fill="${c}" opacity="0.8"/>
     <text x="32" y="46" font-family="'Bebas Neue',sans-serif" font-size="26" fill="${c}" text-anchor="middle" letter-spacing="2">JLA</text>
   </svg>`,
-
+ 
   ww: (c,s=28)=>`<svg viewBox="0 0 64 64" width="${s}" height="${s}" xmlns="http://www.w3.org/2000/svg">
     <polygon points="32,4 38.5,22 58,22 43,34 49,52 32,41 15,52 21,34 6,22 25.5,22" fill="${c}" opacity="0.15" stroke="${c}" stroke-width="1.8"/>
     <text x="32" y="40" font-family="'Bebas Neue',sans-serif" font-size="20" fill="${c}" text-anchor="middle" letter-spacing="2">WW</text>
   </svg>`,
-
+ 
   gl: (c,s=28)=>`<svg viewBox="0 0 64 64" width="${s}" height="${s}" xmlns="http://www.w3.org/2000/svg">
     <circle cx="32" cy="32" r="27" fill="#0d2a0d" stroke="${c}" stroke-width="3"/>
     <circle cx="32" cy="32" r="18" fill="none" stroke="${c}" stroke-width="2"/>
     <circle cx="32" cy="32" r="8" fill="${c}" opacity="0.8"/>
     <circle cx="32" cy="32" r="4" fill="#4aaa4a" opacity="0.9"/>
   </svg>`,
-
+ 
   titanes: (c,s=28)=>`<svg viewBox="0 0 60 60" width="${s}" height="${s}" xmlns="http://www.w3.org/2000/svg">
     <circle cx="30" cy="30" r="27" fill="none" stroke="${c}" stroke-width="1" opacity="0.3"/>
     <rect x="8" y="10" width="44" height="10" rx="3" fill="${c}"/>
     <rect x="24" y="20" width="12" height="32" rx="3" fill="${c}"/>
   </svg>`,
-
+ 
   crisis: (c,s=28)=>`<svg viewBox="0 0 60 60" width="${s}" height="${s}" xmlns="http://www.w3.org/2000/svg">
     <circle cx="30" cy="30" r="24" fill="none" stroke="${c}" stroke-width="1.5" stroke-dasharray="5 3" opacity="0.5"/>
     <circle cx="30" cy="30" r="15" fill="none" stroke="${c}" stroke-width="1.2" opacity="0.6"/>
@@ -1077,16 +1110,16 @@ const HERO_LOGOS = {
     <line x1="30" y1="8" x2="21" y2="3" stroke="${c}" stroke-width="1.5" opacity="0.55"/>
     <line x1="30" y1="8" x2="39" y2="3" stroke="${c}" stroke-width="1.5" opacity="0.55"/>
   </svg>`,
-
+ 
   other: (c,s=28)=>`<svg viewBox="0 0 56 56" width="${s}" height="${s}" xmlns="http://www.w3.org/2000/svg">
     <polygon points="28,4 33,20 48,20 36,30 41,46 28,36 15,46 20,30 8,20 23,20" fill="none" stroke="${c}" stroke-width="1.5"/>
     <circle cx="28" cy="28" r="5" fill="${c}" opacity="0.6"/>
   </svg>`,
 };
-
+ 
 // hero filter chars list
 const HERO_CHARS = ['batman','superman','flash','jla','ww','gl','titanes','crisis','other'];
-
+ 
 const SALVAT_DATA = [
   [10,"JLA: Año Uno Parte 1","01 — Los Orígenes Post-Crisis","origen",4,"JLA: Year One #1-6","jla",2],
   [11,"JLA: Año Uno Parte 2","01 — Los Orígenes Post-Crisis","origen",4,"JLA: Year One #7-12","jla",3],
@@ -1148,7 +1181,7 @@ const SALVAT_DATA = [
   [58,"DC: La Nueva Frontera P.2","Elseworlds","elseworlds",5,"New Frontier #4-6","crisis",83],
   [50,"Batman: La Maldición de Gotham","Elseworlds","elseworlds",2,"Curse of the White Knight","batman",84],
 ];
-
+ 
 const EXTRA = [
   {id:'x-crisis',  title:'Crisis en Tierras Infinitas',            volume:'Edición Deluxe', edition:'Ovni Press',    arc:'00 — El Gran Reseteo',          lore:'canon',     stars:5,order:0.5, char:'crisis',salvat:null,issue:'Crisis on Infinite Earths #1-12'},
   {id:'x-añouno',  title:'Batman: Año Uno',                        volume:'Tapa Dura',      edition:'ECC',           arc:'01 — Los Orígenes Post-Crisis', lore:'origen',    stars:5,order:1.5, char:'batman',salvat:null,issue:'Batman #404-407'},
@@ -1165,7 +1198,7 @@ const EXTRA = [
   {id:'x-dkr',     title:'Batman: El Regreso del Caballero Oscuro',volume:'3ª Edición',     edition:'DC Black Label',arc:'Elseworlds',                    lore:'elseworlds',stars:5,order:85, char:'batman',salvat:null,issue:'The Dark Knight Returns #1-4'},
   {id:'x-3jokers', title:'Batman: 3 Jokers',                       volume:'',               edition:'DC Black Label',arc:'Elseworlds',                    lore:'elseworlds',stars:4,order:86, char:'batman',salvat:null,issue:'Batman: Three Jokers #1-3'},
 ];
-
+ 
 // ── CONFIG ─────────────────────────────────────────────────────
 const VERCEL_PROXY = 'https://dc-coleccion.vercel.app/api/claude';
 const SB = {
@@ -1175,17 +1208,17 @@ const SB = {
   get headers() { return { 'Content-Type':'application/json','apikey':this.key,'Authorization':`Bearer ${this.key}`,'Prefer':'return=representation' }; },
   get endpoint() { return `${this.url}/rest/v1/${this.table}?id=eq.${this.rowId}`; }
 };
-
+ 
 const LOCAL_KEY = 'dcvault_v4';
 let comics = [];
-
+ 
 function buildSalvat() {
   return SALVAT_DATA.map(([n,title,arc,lore,stars,issue,char,order]) => ({
     id:`salvat-${n}`,title,volume:`Tomo ${n}`,edition:'Salvat',arc,lore,stars,order,char,salvat:n,issue,owned:true,read:false
   }));
 }
 function buildDefault() { return [...buildSalvat(), ...EXTRA.map(e=>({...e,owned:true,read:false}))]; }
-
+ 
 // ── MIGRATE legacy char tags ───────────────────────────────────
 function migrateChars(list) {
   // Exact IDs that need fixing based on actual Supabase data
@@ -1221,7 +1254,7 @@ function migrateChars(list) {
   });
   return changed;
 }
-
+ 
 // ── SYNC ──────────────────────────────────────────────────────
 function setSyncStatus(state, msg) {
   const el = document.getElementById('sync-status');
@@ -1232,10 +1265,10 @@ function setSyncStatus(state, msg) {
   el.style.color = colors[state];
   el.style.animation = (state==='saving'||state==='loading') ? 'pulse 1s infinite' : 'none';
 }
-
+ 
 async function loadState() {
   setSyncStatus('loading','Cargando…');
-
+ 
   // 1. Render something immediately — local or default
   const raw = localStorage.getItem(LOCAL_KEY);
   if(raw) {
@@ -1245,7 +1278,7 @@ async function loadState() {
   }
   buildHeroFilters();
   render();
-
+ 
   // 2. Try Supabase in background
   try {
     const res = await fetch(SB.endpoint, { headers: SB.headers });
@@ -1274,7 +1307,7 @@ async function loadState() {
     setSyncStatus('error','Sin conexión — local');
   }
 }
-
+ 
 let saveTimer = null;
 function saveState() {
   localStorage.setItem(LOCAL_KEY, JSON.stringify(comics));
@@ -1282,7 +1315,7 @@ function saveState() {
   setSyncStatus('saving','Guardando…');
   saveTimer = setTimeout(syncToSupabase, 1500);
 }
-
+ 
 async function syncToSupabase() {
   try {
     const res = await fetch(`${SB.url}/rest/v1/${SB.table}`, {
@@ -1294,7 +1327,7 @@ async function syncToSupabase() {
     setSyncStatus('ok','Sincronizado ✓');
   } catch { setSyncStatus('error','Error sync'); }
 }
-
+ 
 // ── FILTERS ───────────────────────────────────────────────────
 let activeFilter='all', activeLore=null, activeChar=null, searchQ='';
 function getVisible() {
@@ -1307,7 +1340,7 @@ function getVisible() {
   if(searchQ){ const q=searchQ.toLowerCase(); list=list.filter(c=>c.title.toLowerCase().includes(q)||(c.arc||'').toLowerCase().includes(q)); }
   return list.sort((a,b)=>a.order-b.order);
 }
-
+ 
 function buildHeroFilters() {
   const container = document.getElementById('hero-filters');
   const RAW_COLORS = {
@@ -1322,7 +1355,7 @@ function buildHeroFilters() {
     </button>`;
   }).join('');
 }
-
+ 
 function toggleChar(ch) {
   if(activeChar===ch){ activeChar=null; }
   else { activeChar=ch; }
@@ -1335,18 +1368,18 @@ function toggleChar(ch) {
   });
   render();
 }
-
+ 
 // ── RENDER ────────────────────────────────────────────────────
 function starsHtml(n){ n=n||3; return `<span class="card-stars">${'★'.repeat(n)}<span class="stars-dim">${'★'.repeat(5-n)}</span></span>`; }
-
+ 
 let firstRender = true;
-
+ 
 function render() {
   updateStats();
   const list = getVisible();
   const root = document.getElementById('root');
   if(!list.length){ root.innerHTML=`<div class="empty"><div class="empty-big">—</div><div class="empty-sub">Sin resultados.</div></div>`; return; }
-
+ 
   const collapsed = {};
   if(firstRender) {
     ERAS.forEach(e => { collapsed[e.key] = true; });
@@ -1354,20 +1387,20 @@ function render() {
   } else {
     document.querySelectorAll('.era-block.collapsed').forEach(el => { collapsed[el.dataset.era] = true; });
   }
-
+ 
   const buckets = {};
   ERAS.forEach(e=>{ buckets[e.key]=[]; });
   list.forEach(c => {
     const era = ERAS.find(e=>c.order>=e.oMin&&c.order<e.oMax)||ERAS[ERAS.length-1];
     buckets[era.key].push(c);
   });
-
+ 
   let html='', pos=1;
   ERAS.forEach(era => {
     const items = buckets[era.key];
     if(!items.length) return;
     const isCollapsed = collapsed[era.key] === true ? 'collapsed' : '';
-
+ 
     html += `<div class="era-block ${isCollapsed}" data-era="${era.key}">
       <div class="era-toggle" onclick="toggleEra('${era.key}')">
         <div class="era-badge">${era.num}</div>
@@ -1381,7 +1414,7 @@ function render() {
         <div class="era-desc-inline">${era.desc}</div>
         ${era.reset?`<div class="era-reset-banner">${era.reset}</div>`:''}
         <div class="card-list">`;
-
+ 
     // Group items by saga
     const sagaMap = {};
     const noSaga = [];
@@ -1393,12 +1426,12 @@ function render() {
         noSaga.push(c);
       }
     });
-
+ 
     // Interleave sagas and solo items in order
     const rendered = new Set();
     items.forEach(c => {
       if(rendered.has(c.id)) return;
-
+ 
       if(c.saga && sagaMap[c.saga] && !rendered.has('saga-'+c.saga)) {
         // Render saga accordion (collapsed by default)
         const sagaItems = sagaMap[c.saga];
@@ -1412,7 +1445,7 @@ function render() {
             <div class="saga-chevron">›</div>
           </div>
           <div class="saga-body"><div class="card-list">`;
-
+ 
         sagaItems.forEach(sc => {
           html += renderCard(sc, pos++);
           rendered.add(sc.id);
@@ -1424,16 +1457,16 @@ function render() {
         rendered.add(c.id);
       }
     });
-
+ 
     html += `</div></div></div>`;
   });
   root.innerHTML = html;
   initSwipe();
 }
-
+ 
 // Track saga collapsed state (default: collapsed = true)
 const collapsedSagas = {};
-
+ 
 function toggleSaga(key) {
   const el = document.querySelector(`.saga-block[data-saga="${key}"]`);
   if(!el) return;
@@ -1441,7 +1474,7 @@ function toggleSaga(key) {
   // true = collapsed, false = open
   collapsedSagas[key] = el.classList.contains('collapsed');
 }
-
+ 
 function renderCard(c, pos) {
   const ch = c.char||'other';
   const RAW_COLORS = {batman:'#c8a84b',superman:'#2266bb',flash:'#cc3322',jla:'#e8e8e0',ww:'#cc6622',gl:'#226622',titanes:'#aa4488',crisis:'#4477cc',salvat:'#33aa66',other:'#5a5a56'};
@@ -1486,7 +1519,7 @@ function renderCard(c, pos) {
     </div>
     ${isReset?`<div class="reset-banner-inline">${isReset}</div>`:''}`;
 }
-
+ 
 function updateStats() {
   const owned=comics.filter(c=>c.owned).length, read=comics.filter(c=>c.read).length;
   document.getElementById('s-total').textContent=comics.length;
@@ -1497,13 +1530,13 @@ function updateStats() {
   document.getElementById('progress').style.width=pct+'%';
   document.getElementById('progress-label').textContent=pct+'%';
 }
-
+ 
 // ── ACCORDION ─────────────────────────────────────────────────
 function toggleEra(key) {
   const el = document.querySelector(`.era-block[data-era="${key}"]`);
   if(el) el.classList.toggle('collapsed');
 }
-
+ 
 // ── SWIPE ─────────────────────────────────────────────────────
 function initSwipe() {
   document.querySelectorAll('.swipe-wrap').forEach(wrap => {
@@ -1529,11 +1562,11 @@ function initSwipe() {
 }
 function cancelDelete(id) { const w=document.getElementById(`sw-${id}`); if(w) w.classList.remove('confirm-delete'); }
 function confirmDelete(id) { comics=comics.filter(x=>x.id!==id); saveState();render(); }
-
+ 
 // ── ACTIONS ───────────────────────────────────────────────────
 function toggleOwned(id){ const c=comics.find(x=>x.id===id); if(c){c.owned=!c.owned;if(!c.owned)c.read=false;saveState();render();} }
 function toggleRead(id){  const c=comics.find(x=>x.id===id); if(c){c.read=!c.read;saveState();render();} }
-
+ 
 // ── MODAL ─────────────────────────────────────────────────────
 let editId=null;
 function resetForm(){
@@ -1622,7 +1655,7 @@ function saveComic(){
   else comics.push({id:'manual-'+Date.now(),issue:'',...data});
   saveState();closeModal();render();
 }
-
+ 
 // ── MODAL TABS ─────────────────────────────────────────────────
 function switchTab(tab) {
   document.getElementById('panel-tomo').style.display = tab==='tomo' ? '' : 'none';
@@ -1636,17 +1669,17 @@ function switchTab(tab) {
     document.getElementById('saga-feedback').style.display = 'none';
   }
 }
-
+ 
 // ── DATALIST: sagas existentes ─────────────────────────────────
 function updateSagaDatalist() {
   const sagas = [...new Set(comics.map(c=>c.saga).filter(Boolean))].sort();
   const dl = document.getElementById('saga-list');
   if(dl) dl.innerHTML = sagas.map(s=>`<option value="${s}">`).join('');
 }
-
+ 
 // ── BUSCAR SAGA (Sonnet) ────────────────────────────────────────
 let sagaResults = [];
-
+ 
 async function buscarSaga() {
   const query = document.getElementById('saga-search-input').value.trim();
   if(!query) return;
@@ -1654,18 +1687,18 @@ async function buscarSaga() {
   const fb  = document.getElementById('saga-feedback');
   const res = document.getElementById('saga-results');
   const addWrap = document.getElementById('saga-add-btn-wrap');
-
+ 
   btn.disabled=true;
   document.getElementById('saga-icon').style.animation='spin 1s linear infinite';
   document.getElementById('saga-label').textContent='…';
   fb.style.display='none'; res.style.display='none'; addWrap.style.display='none';
-
+ 
   try {
     const prompt = `Eres un experto en DC Comics. El usuario busca la saga: "${query}"
-
+ 
 Devolvé la lista completa de tomos de esa saga en orden de lectura.
 Para cada tomo incluí las editoriales españolas disponibles: Ovni Press, ECC Ediciones, Panini, Norma, Planeta. Si no hay edición española de alguna editorial, no la incluyas.
-
+ 
 Responde SOLO con JSON válido sin markdown:
 {
   "saga": "nombre exacto de la saga",
@@ -1685,7 +1718,7 @@ Responde SOLO con JSON válido sin markdown:
     }
   ]
 }`;
-
+ 
     const response = await fetch(VERCEL_PROXY, {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
@@ -1696,9 +1729,9 @@ Responde SOLO con JSON válido sin markdown:
     });
     const data = await response.json();
     const info = JSON.parse(data.content?.map(b=>b.text||'').join('').trim().replace(/```json|```/g,'').trim());
-
+ 
     sagaResults = info.tomos.map((t,i) => ({...t, _idx:i, _checked:true, _edition: t.editoriales?.[0]||''}));
-
+ 
     // Render results
     res.innerHTML = `
       <div style="padding:8px 0 12px">
@@ -1730,7 +1763,7 @@ Responde SOLO con JSON válido sin markdown:
     `;
     res.style.display='block';
     addWrap.style.display='block';
-
+ 
   } catch(e) {
     fb.textContent = 'No se pudo buscar la saga. Intentá de nuevo.';
     fb.className = 'ai-feedback error';
@@ -1741,7 +1774,7 @@ Responde SOLO con JSON válido sin markdown:
     document.getElementById('saga-label').textContent='Buscar';
   }
 }
-
+ 
 function toggleSagaTomo(i) {
   sagaResults[i]._checked = !sagaResults[i]._checked;
   const check = document.getElementById(`stcheck-${i}`);
@@ -1750,7 +1783,7 @@ function toggleSagaTomo(i) {
   check.textContent = sagaResults[i]._checked ? '✓' : '';
   card.style.opacity = sagaResults[i]._checked ? '1' : '0.4';
 }
-
+ 
 function selectEdition(i, ed) {
   sagaResults[i]._edition = ed;
   const card = document.getElementById(`stc-${i}`);
@@ -1758,19 +1791,19 @@ function selectEdition(i, ed) {
     btn.classList.toggle('selected', btn.textContent.trim()===ed || (ed==='' && btn.textContent.trim()==='Sin especificar'));
   });
 }
-
+ 
 function agregarTomosSaga() {
   const selected = sagaResults.filter(t => t._checked);
   if(!selected.length) return;
-
+ 
   // Get saga name from search results header
   const sagaNombre = document.querySelector('#saga-results div div')?.textContent?.trim() || document.getElementById('saga-search-input').value.trim();
-
+ 
   selected.forEach(t => {
     // Check if already exists by title similarity
     const exists = comics.some(c => c.title.toLowerCase() === t.titulo.toLowerCase());
     if(exists) return;
-
+ 
     comics.push({
       id: 'manual-' + Date.now() + Math.random().toString(36).substr(2,4),
       title: t.titulo,
@@ -1791,7 +1824,7 @@ function agregarTomosSaga() {
       issue: t.issue||''
     });
   });
-
+ 
   saveState();
   closeModal();
   render();
@@ -1815,9 +1848,9 @@ async function doAutocomplete(){
 - "Superman: Tierra Uno" → Parte 1 y 2
 - "Superman: Legado" → Parte 1 y 2
 - "Batman: Detective" → Parte 1 y 2`;
-
+ 
   const prompt=`Eres un experto en DC Comics. El usuario quiere añadir: "${title}"
-
+ 
 Eras (order en enteros 3 dígitos):
 - PRE (order < 5): Era Pre-Crisis
 - 01 (5-110): Orígenes Post-Crisis
@@ -1825,11 +1858,11 @@ Eras (order en enteros 3 dígitos):
 - 03 (250-445): Liga Moderna 2000s
 - 04 (445-600): Cierre pre-New52
 - EW (800+): Elseworlds
-
+ 
 ${SAGAS_CONOCIDAS}
-
+ 
 Si el tomo pertenece a alguna saga conocida o a cualquier otra saga multi-tomo, incluí el nombre exacto de la saga.
-
+ 
 Responde SOLO con JSON válido sin markdown:
 {"title":"título exacto en español","volume":"issues o vol","arc":"nombre de era","lore":"canon|tiein|elseworlds|origen","stars":1-5,"order":número entero,"char":"batman|superman|flash|gl|jla|crisis|ww|titanes|other","writer":"guionista","artist":"dibujante","year":año,"saga":"nombre de saga o null","reason":"explicación breve en español"}`;
   try{
@@ -1856,20 +1889,20 @@ Responde SOLO con JSON válido sin markdown:
     fb.textContent='No se pudo autocompletar. Rellena los campos manualmente.';
   }finally{btn.disabled=false;btn.classList.remove('loading');lbl.textContent='Auto';}
 }
-
+ 
 // ── ORDER CONTEXT ──────────────────────────────────────────────
 function showOrderContext(order) {
   const ctx = document.getElementById('order-context');
   const inp = document.getElementById('f-order');
   if(!ctx || !inp) return;
-
+ 
   const sorted = [...comics].sort((a,b)=>a.order-b.order);
   const currentId = editId; // null when adding
   const filtered = sorted.filter(c => c.id !== currentId);
-
+ 
   const prev = [...filtered].reverse().find(c => c.order <= order);
   const next = filtered.find(c => c.order > order);
-
+ 
   const rowStyle = `display:flex;align-items:center;gap:10px;padding:9px 12px;`;
   const labelStyle = `font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);flex-shrink:0;width:48px;`;
   const titleStyle = `flex:1;color:var(--text);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`;
@@ -1877,7 +1910,7 @@ function showOrderContext(order) {
   const newStyle = `display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--golddim);border-top:1px solid var(--border);border-bottom:1px solid var(--border);`;
   const newTitleStyle = `flex:1;color:var(--gold);font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;`;
   const currentTitle = document.getElementById('f-title').value.trim() || '— nuevo tomo —';
-
+ 
   let html = '';
   if(prev) {
     const color = CHAR_COLORS[prev.char||'other']||'var(--col-other)';
@@ -1903,15 +1936,15 @@ function showOrderContext(order) {
       <span style="${titleStyle}">${next.title}</span>
     </div>`;
   }
-
+ 
   ctx.innerHTML = html;
   ctx.style.display = 'block';
-
+ 
   // Resaltar el campo de posición
   inp.style.borderColor = 'var(--gold)';
   inp.style.boxShadow = '0 0 0 2px rgba(200,168,75,0.2)';
 }
-
+ 
 // ── EVENTS ────────────────────────────────────────────────────
 document.getElementById('btn-add').addEventListener('click', openAdd);
 document.getElementById('modal-close').addEventListener('click', closeModal);
@@ -1925,7 +1958,7 @@ document.getElementById('f-order').addEventListener('input', () => {
   else if(ctx) ctx.style.display='none';
 });
 document.getElementById('modal').addEventListener('click', e=>{ if(e.target===document.getElementById('modal')) closeModal(); });
-
+ 
 document.querySelectorAll('[data-filter]').forEach(btn=>btn.addEventListener('click',()=>{
   document.querySelectorAll('[data-filter]').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active'); activeFilter=btn.dataset.filter; render();
@@ -1950,7 +1983,7 @@ function toggleSearch() {
     setTimeout(()=>document.getElementById('search').focus(), 200);
   }
 }
-
+ 
 document.getElementById('search').addEventListener('input',e=>{
   searchQ=e.target.value;
   document.getElementById('search-clear').classList.toggle('visible', searchQ.length>0);
@@ -1965,10 +1998,10 @@ function clearSearch(){
   render();
 }
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeDetail();}if(e.key==='Enter'&&document.getElementById('modal').classList.contains('open'))saveComic();});
-
+ 
 loadState();
 </script>
-
+ 
 <!-- ═══ DETAIL SHEET ═══ -->
 <style>
 .detail-bg {
@@ -1976,7 +2009,7 @@ loadState();
   background:rgba(0,0,0,0.8); backdrop-filter:blur(8px);
 }
 .detail-bg.open { display:block; }
-
+ 
 .detail-sheet {
   position:fixed; bottom:0; left:0; right:0;
   background:var(--surface);
@@ -1990,7 +2023,7 @@ loadState();
   overscroll-behavior:contain;
 }
 .detail-bg.open .detail-sheet { transform:translateY(0); }
-
+ 
 .detail-handle {
   width:36px; height:4px; border-radius:2px;
   background:var(--border2); margin:12px auto 0;
@@ -2017,7 +2050,7 @@ loadState();
   border-bottom:1px solid var(--border);
 }
 .detail-body { padding:16px 20px; display:flex; flex-direction:column; gap:16px; }
-
+ 
 .d-section-label {
   font-family:'Barlow Condensed',sans-serif;
   font-size:9px; text-transform:uppercase; letter-spacing:0.2em;
@@ -2028,7 +2061,7 @@ loadState();
   font-style:italic;
 }
 .d-synopsis.loading { color:var(--muted); animation:pulse 1s infinite; }
-
+ 
 .d-meta-grid {
   display:grid; grid-template-columns:1fr 1fr; gap:6px;
 }
@@ -2042,7 +2075,7 @@ loadState();
   color:var(--muted); margin-bottom:2px;
 }
 .d-meta-val { font-size:12px; color:var(--text); font-weight:500; }
-
+ 
 .d-link {
   display:inline-flex; align-items:center; gap:6px;
   background:var(--surface2); border:1px solid var(--border2);
@@ -2052,7 +2085,7 @@ loadState();
   text-decoration:none; transition:all 0.15s; margin-right:8px; margin-bottom:6px;
 }
 .d-link:active { border-color:var(--gold); }
-
+ 
 .d-status-row {
   display:flex; gap:8px;
 }
@@ -2067,7 +2100,7 @@ loadState();
 .d-status-btn.on-read  { background:#2a8a5020; border-color:var(--green); color:var(--green); }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 </style>
-
+ 
 <div class="detail-bg" id="detail-bg" onclick="if(event.target===this)closeDetail()">
   <div class="detail-sheet">
     <div class="detail-handle"></div>
@@ -2077,22 +2110,22 @@ loadState();
     </div>
     <div class="detail-badges-row" id="d-badges"></div>
     <div class="detail-body">
-
+ 
       <div>
         <div class="d-section-label">Sinopsis</div>
         <div class="d-synopsis loading" id="d-synopsis">Cargando…</div>
       </div>
-
+ 
       <div>
         <div class="d-section-label">Datos</div>
         <div class="d-meta-grid" id="d-meta"></div>
       </div>
-
+ 
       <div>
         <div class="d-section-label">Buscar en tiendas</div>
         <div id="d-stores"></div>
       </div>
-
+ 
       <div>
         <div class="d-section-label">Estado</div>
         <div class="d-status-row">
@@ -2101,28 +2134,28 @@ loadState();
           <button class="d-status-btn" onclick="openEditFromDetail()" style="flex:0.4;font-size:16px">✏</button>
         </div>
       </div>
-
+ 
     </div>
   </div>
 </div>
-
+ 
 <script>
 let detailId = null;
-
+ 
 function closeDetail() {
   document.getElementById('detail-bg').classList.remove('open');
   detailId = null;
 }
-
+ 
 async function openDetail(id) {
   detailId = id;
   const c = comics.find(x=>x.id===id);
   if(!c) return;
-
+ 
   const RAW_COLORS = {batman:'#c8a84b',superman:'#2266bb',flash:'#cc3322',jla:'#e8e8e0',ww:'#cc6622',gl:'#226622',titanes:'#aa4488',crisis:'#4477cc',salvat:'#33aa66',other:'#5a5a56'};
   const color = RAW_COLORS[c.char||'other'] || '#5a5a56';
   const LORE_LABELS = { canon:'Canon', tiein:'Tie-in', elseworlds:'Elseworlds', origen:'Origen' };
-
+ 
   document.getElementById('d-title').textContent = c.title;
   document.getElementById('d-badges').innerHTML = `
     <span class="lore-tag lore-${c.lore}">${LORE_LABELS[c.lore]}</span>
@@ -2130,7 +2163,7 @@ async function openDetail(id) {
     ${c.salvat?`<span class="salvat-badge">#${c.salvat}</span>`:''}
     ${starsHtml(c.stars)}
   `;
-
+ 
   // Meta grid
   const meta = [
     c.writer  ? ['Guionista', c.writer]  : null,
@@ -2143,25 +2176,25 @@ async function openDetail(id) {
   document.getElementById('d-meta').innerHTML = meta.map(([k,v])=>`
     <div class="d-meta-item"><div class="d-meta-key">${k}</div><div class="d-meta-val">${v}</div></div>
   `).join('');
-
+ 
   // Status
   updateDetailStatus(c);
-
+ 
   // Tiendas — links de búsqueda directos (precios y stock reales en cada sitio)
   const q = encodeURIComponent(c.title);
   const stores = [
     ['Ovni Press', `https://ovnipress.com.ar/?s=${q}&post_type=product`],
-    ['ECC',        `https://www.eccediciones.com/?s=${q}`],
+    ['ECC',        `https://www.tiendaecc.com/catalogsearch/result/?q=${q}`],
     ['Panini',     `https://www.panini.es/shp_esp_es/catalogsearch/result/?q=${q}`],
     ['Google',     `https://www.google.com/search?q=${encodeURIComponent(c.title+' comprar cómic')}`],
   ];
   document.getElementById('d-stores').innerHTML = stores.map(([name,url])=>
     `<a class="d-link" href="${url}" target="_blank">${name} →</a>`
   ).join('');
-
+ 
   // Open
   document.getElementById('detail-bg').classList.add('open');
-
+ 
   // Synopsis
   const synEl = document.getElementById('d-synopsis');
   if(c.synopsis) {
@@ -2173,21 +2206,21 @@ async function openDetail(id) {
     generateSynopsis(c);
   }
 }
-
+ 
 async function generateSynopsis(c) {
   const synEl = document.getElementById('d-synopsis');
   try {
     const prompt = `Eres un experto en DC Comics. Dame una sinopsis breve (3-4 oraciones en español) del cómic: "${c.title}" (${c.year||''}, ${c.issue||''}).
 Responde SOLO con JSON válido sin markdown:
 {"synopsis":"texto de la sinopsis"}`;
-
+ 
     const res = await fetch(VERCEL_PROXY, {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({model:'claude-haiku-4-5-20251001', max_tokens:300, messages:[{role:'user',content:prompt}]})
     });
     const data = await res.json();
     const info = JSON.parse(data.content?.map(b=>b.text||'').join('').trim().replace(/```json|```/g,'').trim());
-
+ 
     const idx = comics.findIndex(x=>x.id===c.id);
     if(idx>=0) {
       comics[idx].synopsis = info.synopsis||'';
@@ -2201,7 +2234,7 @@ Responde SOLO con JSON válido sin markdown:
     if(detailId===c.id) { synEl.textContent='No se pudo cargar la sinopsis.'; synEl.classList.remove('loading'); }
   }
 }
-
+ 
 function updateDetailStatus(c) {
   const bo = document.getElementById('d-btn-owned');
   const br = document.getElementById('d-btn-read');
@@ -2226,3 +2259,4 @@ function openEditFromDetail() {
 </script>
 </body>
 </html>
+ 
