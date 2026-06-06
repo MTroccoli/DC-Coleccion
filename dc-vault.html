@@ -717,18 +717,21 @@ main {
 }
 .saga-edition-btn.selected {
   background: var(--golddim); border-color: var(--gold); color: var(--gold);
-}
-.ai-row { display: flex; gap: 8px; align-items: flex-end; margin-bottom: 14px; }
+} display: flex; gap: 8px; align-items: flex-end; margin-bottom: 14px; }
 .btn-ai {
   flex-shrink: 0;
-  background: #12122a; color: var(--gold);
-  border: 1px solid #334499;
-  padding: 10px 14px; border-radius: 10px;
-  font-family: 'Bebas Neue', sans-serif; font-size: 14px;
-  letter-spacing: 0.08em; cursor: pointer;
-  display: flex; align-items: center; gap: 5px;
+  background: var(--gold);
+  color: #111;
+  border: 2px solid #334499;
+  padding: 12px 18px; border-radius: 10px;
+  font-family: 'Bebas Neue', sans-serif; font-size: 16px;
+  letter-spacing: 0.1em; cursor: pointer;
+  display: flex; align-items: center; gap: 6px;
   white-space: nowrap; transition: all 0.2s;
+  box-shadow: 0 2px 12px rgba(200,168,75,0.3);
 }
+.btn-ai:hover { background: var(--gold2); }
+.btn-ai:active { transform: scale(0.96); }
 .btn-ai:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn-ai.loading #ai-icon { animation: spin 1s linear infinite; display: inline-block; }
 @keyframes spin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
@@ -739,6 +742,13 @@ main {
   color: #8899dd; line-height: 1.5;
 }
 .ai-feedback.error { background: #221010; border-color: #553333; color: #cc6666; }
+
+/* AI row */
+.ai-row {
+  display: flex; gap: 10px; align-items: flex-end;
+  margin-bottom: 14px;
+}
+.ai-row .fl { flex: 1; }
 
 /* Form grid */
 .fg { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -898,7 +908,7 @@ main {
         <div class="ai-row">
           <div class="fl" style="flex:1">
             <label>Título del cómic</label>
-            <input id="f-title" type="text" placeholder="Ej: Batman: Noel" autocomplete="off">
+            <input id="f-title" type="text" placeholder="Título o ISBN (978…)" autocomplete="off">
           </div>
           <button class="btn-ai" id="btn-autocomplete" onclick="doAutocomplete()">
             <span id="ai-icon">✦</span><span id="ai-label">Auto</span>
@@ -1001,12 +1011,12 @@ main {
 <script>
 // ── ERAS ──────────────────────────────────────────────────────
 const ERAS = [
-  { key:'EP', num:'PRE', name:'La Era Pre-Crisis', desc:'Edad de Plata y Bronce, antes del gran reseteo de 1985. Dan contexto invaluable a Crisis, que cierra esta era.', reset:null, oMin:0,   oMax:49  },
-  { key:'E1', num:'01',  name:'Los Orígenes Post-Crisis', desc:'Batman, Superman y WW reciben nuevos orígenes canónicos. Frank Miller, Pérez y Byrne.', reset:null, oMin:49,  oMax:169 },
-  { key:'E2', num:'02',  name:'La Era Clásica', desc:'Los 80s y 90s post-Crisis. Knightfall, Tierra de Nadie, Superman muere.', reset:null, oMin:169, oMax:479 },
-  { key:'E3', num:'03',  name:'La Liga Moderna', desc:'Morrison reinventa la JLA. Torre de Babel, Nuevo Orden Mundial, grandes crossovers.', reset:null, oMin:479, oMax:759 },
-  { key:'E4', num:'04',  name:'El Cierre de Una Era', desc:'Silencio, Batman e Hijo, Flash Renacimiento. La era pre-New 52 llega a su clímax con Flashpoint.', reset:null, oMin:759, oMax:959 },
-  { key:'EW', num:'∞',   name:'Elseworlds', desc:'Historias alternativas fuera del canon. Leer en cualquier momento.', reset:null, oMin:959, oMax:99999 },
+  { key:'EP', num:'PRE', name:'La Era Pre-Crisis', desc:'Edad de Plata y Bronce, antes del gran reseteo de 1985. Dan contexto invaluable a Crisis, que cierra esta era.', reset:null, oMin:-999, oMax:5 },
+  { key:'E1', num:'01',  name:'Los Orígenes Post-Crisis', desc:'Batman, Superman y WW reciben nuevos orígenes canónicos. Frank Miller, Pérez y Byrne.', reset:null, oMin:5, oMax:110 },
+  { key:'E2', num:'02',  name:'La Era Clásica', desc:'Los 80s y 90s post-Crisis. Knightfall, Tierra de Nadie, Superman muere.', reset:null, oMin:110, oMax:250 },
+  { key:'E3', num:'03',  name:'La Liga Moderna', desc:'Morrison reinventa la JLA. Torre de Babel, Nuevo Orden Mundial, grandes crossovers.', reset:null, oMin:250, oMax:445 },
+  { key:'E4', num:'04',  name:'El Cierre de Una Era', desc:'Silencio, Batman e Hijo, Flash Renacimiento. La era pre-New 52 llega a su clímax con Flashpoint.', reset:null, oMin:445, oMax:600 },
+  { key:'EW', num:'∞',   name:'Elseworlds', desc:'Historias alternativas fuera del canon. Leer en cualquier momento.', reset:null, oMin:600, oMax:99999 },
 ];
 
 // Tomos que son "eventos de reseteo" — se muestran como banner especial al final de su era
@@ -1673,7 +1683,7 @@ Responde SOLO con JSON válido sin markdown:
   "tomos": [
     {
       "titulo": "título exacto en español",
-      "order": número entero (usa rangos: PRE=10-41, 01=59-160, 02=178-471, 03=491-748, 04=770-949, EW=964-995),
+      "order": número entero (usa rangos: Pre<5, 01=5-110, 02=110-250, 03=250-445, 04=445-600, EW=800+),
       "year": año,
       "writer": "guionista",
       "artist": "dibujante",
@@ -1799,6 +1809,13 @@ async function doAutocomplete(){
   const btn=document.getElementById('btn-autocomplete'),fb=document.getElementById('ai-feedback'),lbl=document.getElementById('ai-label');
   btn.disabled=true;btn.classList.add('loading');lbl.textContent='…';
   fb.style.display='none';fb.className='ai-feedback';
+
+  // Detectar si es un ISBN (empieza con 978 o 979, puede tener guiones)
+  const isIsbn = /^(978|979)[\d\-]{9,}/.test(title.replace(/\s/g,''));
+  const inputDesc = isIsbn
+    ? `el ISBN: ${title}`
+    : `el título: "${title}"`;
+
   const SAGAS_CONOCIDAS = `Sagas conocidas en esta colección:
 - "Knightfall" → Batman: Camino a la Caída, Preludio, La Caída, Cruzada I y II, Búsqueda, Fin del Caballero, Pródigo, Troika
 - "Batman: Tierra de Nadie" → Contagio, Legado, Cataclismo Pt1/2, Ruta a TDN, Vol 6-10
@@ -1813,15 +1830,16 @@ async function doAutocomplete(){
 - "Superman: Legado" → Parte 1 y 2
 - "Batman: Detective" → Parte 1 y 2`;
 
-  const prompt=`Eres un experto en DC Comics. El usuario quiere añadir: "${title}"
+  const prompt=`Eres un experto en DC Comics. El usuario quiere añadir un cómic identificado por ${inputDesc}
+${isIsbn ? 'Buscá el cómic DC que corresponde a ese ISBN. Puede ser una edición en español (Ovni Press, ECC, Panini, Salvat) o en inglés.' : ''}
 
 Eras (order en enteros 3 dígitos):
-- PRE (order 10-41): Era Pre-Crisis
-- 01 (order 59-160): Orígenes Post-Crisis
-- 02 (order 178-471): Era Clásica 80s-90s
-- 03 (order 491-748): Liga Moderna 2000s
-- 04 (order 770-949): Cierre pre-New52
-- EW (order 964-995): Elseworlds
+- PRE (order < 5): Era Pre-Crisis
+- 01 (5-110): Orígenes Post-Crisis
+- 02 (110-250): Era Clásica 80s-90s
+- 03 (250-445): Liga Moderna 2000s
+- 04 (445-600): Cierre pre-New52
+- EW (800+): Elseworlds
 
 ${SAGAS_CONOCIDAS}
 
@@ -2144,16 +2162,13 @@ async function openDetail(id) {
   // Status
   updateDetailStatus(c);
 
-  // Tiendas — links de búsqueda directos con formato correcto por editorial
-  const qOvni   = encodeURIComponent(c.title);                          // espacios como %20
-  const qPanini = c.title.replace(/ /g, '+');                           // espacios como +
-  const qECC    = encodeURIComponent(c.title);                          // espacios como %20
-  const qGoogle = encodeURIComponent(c.title + ' cómic edición español');
+  // Tiendas — links de búsqueda directos (precios y stock reales en cada sitio)
+  const q = encodeURIComponent(c.title);
   const stores = [
-    ['Ovni Press', `https://www.ovnipress.net/?s=${qOvni}&post_type=product`],
-    ['ECC',        `https://www.eccediciones.com/?s=${qECC}`],
-    ['Panini',     `https://www.panini.es/shp_esp_es/catalogsearch/result/?q=${qPanini}`],
-    ['Google',     `https://www.google.com/search?q=${qGoogle}`],
+    ['Ovni Press', `https://ovnipress.com.ar/?s=${q}&post_type=product`],
+    ['ECC',        `https://www.eccediciones.com/?s=${q}`],
+    ['Panini',     `https://www.panini.es/shp_esp_es/catalogsearch/result/?q=${q}`],
+    ['Google',     `https://www.google.com/search?q=${encodeURIComponent(c.title+' comprar cómic')}`],
   ];
   document.getElementById('d-stores').innerHTML = stores.map(([name,url])=>
     `<a class="d-link" href="${url}" target="_blank">${name} →</a>`
