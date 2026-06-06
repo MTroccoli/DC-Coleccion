@@ -1825,7 +1825,7 @@ async function lookupISBN(){
     const data=await res.json();
     if(!data.found) {
       fb.style.display='block'; fb.className='ai-feedback error';
-      fb.innerHTML=`Google Books no tiene ese ISBN (<strong>${isbn}</strong>).<br>
+      fb.innerHTML=`No se encontró ese ISBN (<strong>${isbn}</strong>) en Open Library ni Google Books.<br>
         <span style="opacity:0.7;font-size:11px">Verificá los dígitos, o cargá el título y pulsá «Auto».</span>`;
       return;
     }
@@ -1840,8 +1840,9 @@ async function lookupISBN(){
     inp.value=isbn;
 
     fb.style.display='block';
+    const fuente = data.source==='openlibrary' ? 'Open Library' : 'Google Books';
     fb.innerHTML=`<strong style="color:var(--text)">${title||'(sin título)'}</strong><br>
-      <span style="opacity:0.75">Google Books · ${[publisher,year].filter(Boolean).join(' · ')||'datos básicos'}</span><br>
+      <span style="opacity:0.75">${fuente} · ${[publisher,year].filter(Boolean).join(' · ')||'datos básicos'}</span><br>
       <span style="opacity:0.6;font-size:11px">Pulsá «Auto» para completar posición, lore y personaje.</span>`;
   }catch(e){
     fb.style.display='block'; fb.className='ai-feedback error';
