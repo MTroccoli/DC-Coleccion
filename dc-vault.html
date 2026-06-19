@@ -448,6 +448,15 @@ main {
   align-items: center;
 }
 .filter-scroll-heroes::-webkit-scrollbar { display: none; }
+.filter-scroll-eras {
+  display: flex; gap: 6px;
+  padding: 0 16px 10px;
+  overflow-x: auto;
+  scrollbar-width: none; -ms-overflow-style: none;
+  align-items: center;
+}
+.filter-scroll-eras::-webkit-scrollbar { display: none; }
+.pill-era.active { background: #1e3050; border-color: #4a7ab5; color: #8bb4e0; }
 .pill-hero {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 11px; font-weight: 600;
@@ -863,6 +872,7 @@ main {
     <button class="pill pill-origen" data-lore="origen">Origen</button>
   </div>
   <div class="filter-scroll-heroes" id="hero-filters"></div>
+  <div class="filter-scroll-eras" id="era-filters"></div>
 </div>
 
 <!-- ── MAIN ── -->
@@ -1263,6 +1273,7 @@ async function loadState() {
     comics = buildDefault();
   }
   buildHeroFilters();
+  buildEraFilters();
   render();
 
   // 2. Try Supabase in background
@@ -1317,7 +1328,7 @@ async function syncToSupabase() {
 }
 
 // ── FILTERS ───────────────────────────────────────────────────
-let activeFilter='all', activeLore=null, activeChar=null, searchQ='';
+let activeFilter='all', activeLore=null, activeChar=null, activeEra=null, searchQ='';
 function getVisible() {
   let list = [...comics];
   if(activeFilter==='owned')   list = list.filter(c=>c.owned);
@@ -1325,6 +1336,7 @@ function getVisible() {
   if(activeFilter==='unread')  list = list.filter(c=>c.owned&&!c.read);
   if(activeLore)               list = list.filter(c=>c.lore===activeLore);
   if(activeChar)               list = list.filter(c=>(c.char||'other')===activeChar);
+  if(activeEra) { const e=ERAS.find(x=>x.key===activeEra); if(e) list=list.filter(c=>c.order>=e.oMin&&c.order<e.oMax); }
   if(searchQ){ const q=searchQ.toLowerCase(); const qn=q.replace(/[\s-]/g,''); list=list.filter(c=>c.title.toLowerCase().includes(q)||(c.arc||'').toLowerCase().includes(q)||(qn.length>=3&&(c.isbn||'').includes(qn))); }
   return list.sort((a,b)=>a.order-b.order);
 }
@@ -1342,6 +1354,21 @@ function buildHeroFilters() {
       ${logo}<span>${CHAR_LABELS[ch]||ch}</span>
     </button>`;
   }).join('');
+}
+
+function buildEraFilters() {
+  const container = document.getElementById('era-filters');
+  if(!container) return;
+  container.innerHTML = ERAS.map(e => {
+    const short = e.name.replace(/^(la era |el |la |los )/i,'').replace(/ de una era$/i,'');
+    return `<button class="pill pill-era" data-era="${e.key}" onclick="setEraFilter('${e.key}')">${e.num} · ${short}</button>`;
+  }).join('');
+}
+
+function setEraFilter(key) {
+  activeEra = activeEra===key ? null : key;
+  document.querySelectorAll('.pill-era').forEach(b=>b.classList.toggle('active', b.dataset.era===activeEra));
+  render();
 }
 
 function toggleChar(ch) {
