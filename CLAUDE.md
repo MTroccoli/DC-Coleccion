@@ -128,6 +128,16 @@ La migración de campos (`migrateChars`) corrige `char` para tomos específicos 
 | Add/Edit sheet | Modal bottom-sheet con formulario completo + tabs Tomo/Saga |
 | Detail sheet | Vista detallada con sinopsis IA, links a tiendas, cambiar estado |
 
+## Principio de orden: Lore DC, no publicación
+
+**REGLA FUNDAMENTAL**: El campo `order` de cada tomo refleja **cuándo ocurre la historia en la continuidad DC**, no cuándo fue publicada.
+
+- Batman: El Largo Halloween (publicado 1996-1997) va en order ~220 porque se ambienta en el Año 2-3 de Batman, antes que muchas historias publicadas en los 80s.
+- Batman: Año Uno (1987) abre E2 en order 215 porque es el inicio de la carrera de Batman.
+- Las historias de "Año Uno" de otros personajes se ubican en sus posiciones lore aunque hayan sido escritas décadas después.
+
+Al agregar o reordenar tomos, siempre preguntar: **¿cuándo sucede esto en el universo DC?**, no ¿cuándo se publicó?
+
 ## Convenciones de desarrollo
 
 - **No hay build step** — editar `dc-vault.html` directamente.
