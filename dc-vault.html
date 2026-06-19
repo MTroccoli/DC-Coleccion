@@ -1196,6 +1196,16 @@ function buildSalvat() {
 function buildDefault() { return [...buildSalvat(), ...EXTRA.map(e=>({...e,owned:true,read:false}))]; }
 
 // ── MIGRATE legacy char tags ───────────────────────────────────
+function migrateOrders(list) {
+  // Origen comics that still have old E1 orders (49–169) need to move to E2 start (200–249)
+  const toFix = list
+    .filter(c => c.lore === 'origen' && c.order < 200)
+    .sort((a, b) => a.order - b.order);
+  if (!toFix.length) return false;
+  toFix.forEach((c, i) => { c.order = 205 + i * 5; });
+  return true;
+}
+
 function migrateChars(list) {
   // Exact IDs that need fixing based on actual Supabase data
   const FIX = {
@@ -1262,7 +1272,7 @@ async function loadState() {
     const rows = await res.json();
     if(rows.length>0 && rows[0].data && rows[0].data.length>0) {
       comics = rows[0].data;
-      const migrated = migrateChars(comics);
+      const migrated = migrateChars(comics) | migrateOrders(comics);
       localStorage.setItem(LOCAL_KEY, JSON.stringify(comics));
       render();
       if(migrated) {
@@ -1273,12 +1283,14 @@ async function loadState() {
       }
     } else {
       migrateChars(comics);
+      migrateOrders(comics);
       setSyncStatus('saving','Guardando…');
       await syncToSupabase();
     }
   } catch(e) {
     console.warn('Supabase no disponible:', e);
     migrateChars(comics);
+    migrateOrders(comics);
     render();
     setSyncStatus('error','Sin conexión — local');
   }
@@ -1863,19 +1875,10 @@ async function doAutocomplete(){
   const btn=document.getElementById('btn-autocomplete'),fb=document.getElementById('ai-feedback'),lbl=document.getElementById('ai-label');
   btn.disabled=true;btn.classList.add('loading');lbl.textContent='…';
   fb.style.display='none';fb.className='ai-feedback';
-  const SAGAS_CONOCIDAS = `Sagas conocidas en esta colección:
-- "Knightfall" → Batman: Camino a la Caída, Preludio, La Caída, Cruzada I y II, Búsqueda, Fin del Caballero, Pródigo, Troika
-- "Batman: Tierra de Nadie" → Contagio, Legado, Cataclismo Pt1/2, Ruta a TDN, Vol 6-10
-- "La Muerte de Superman" → La Muerte de Superman, Funeral para un Amigo, Retorno de Superman
-- "Flash: La Saga de la Velocidad" → Flash Velocidad Salvaje, Flash: Rogue War, Flash: Renacimiento, etc
-- "El Largo Halloween" → Parte 1 y 2
-- "Batman: Silencio" → Parte 1 y 2
-- "JLA: Año Uno" → Parte 1 y 2
-- "JLA: Justicia" → Parte 1 y 2
-- "DC: La Nueva Frontera" → Parte 1 y 2
-- "Superman: Tierra Uno" → Parte 1 y 2
-- "Superman: Legado" → Parte 1 y 2
-- "Batman: Detective" → Parte 1 y 2`;
+  const sagasEnColeccion = [...new Set(comics.map(c=>c.saga).filter(Boolean))].sort();
+  const SAGAS_CONOCIDAS = sagasEnColeccion.length
+    ? `Sagas YA EXISTENTES en la colección del usuario (usá el nombre EXACTAMENTE como aparece aquí):\n${sagasEnColeccion.map(s=>`- "${s}"`).join('\n')}\n\nSi el tomo pertenece a una de estas sagas, usá ese nombre exacto. Si pertenece a una saga distinta no listada, podés sugerir un nombre nuevo.`
+    : '';
 
   const prompt=`Eres un experto en DC Comics. El usuario quiere añadir: "${title}"
 
