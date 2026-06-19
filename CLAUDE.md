@@ -69,14 +69,15 @@ DC-Coleccion/
 
 ### Rangos de `order` por era
 
-| Clave | Era | Rango |
-|---|---|---|
-| `EP` | Pre-Crisis | 0–49 |
-| `E1` | Orígenes Post-Crisis | 49–169 |
-| `E2` | Era Clásica | 169–479 |
-| `E3` | Liga Moderna | 479–759 |
-| `E4` | Cierre pre-New 52 | 759–959 |
-| `EW` | Elseworlds | 959–∞ |
+| Clave | Era | Rango | Notas |
+|---|---|---|---|
+| `EP` | Pre-Crisis | 0–199 | Solo contiene Crisis en Tierras Infinitas (order 100) |
+| `E2` | La Era Clásica | 200–499 | Orígenes post-Crisis (200-249, `lore:'origen'`) + grandes arcos 80s-90s (250-499) |
+| `E3` | Liga Moderna | 500–749 | |
+| `E4` | Cierre pre-New 52 | 750–949 | Flashpoint al final (order 900) |
+| `EW` | Elseworlds | 950–∞ | |
+
+> No existe E1 como era separada. Los tomos de origen viven en E2 identificados con `lore: 'origen'`.
 
 ## Flujo de datos / sincronización
 
