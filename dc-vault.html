@@ -1009,12 +1009,11 @@ main {
 <script>
 // ── ERAS ──────────────────────────────────────────────────────
 const ERAS = [
-  { key:'EP', num:'PRE', name:'La Era Pre-Crisis', desc:'Edad de Plata y Bronce, antes del gran reseteo de 1985. Dan contexto invaluable a Crisis, que cierra esta era.', reset:null, oMin:0,   oMax:49  },
-  { key:'E1', num:'01',  name:'Los Orígenes Post-Crisis', desc:'Batman, Superman y WW reciben nuevos orígenes canónicos. Frank Miller, Pérez y Byrne.', reset:null, oMin:49,  oMax:169 },
-  { key:'E2', num:'02',  name:'La Era Clásica', desc:'Los 80s y 90s post-Crisis. Knightfall, Tierra de Nadie, Superman muere.', reset:null, oMin:169, oMax:479 },
-  { key:'E3', num:'03',  name:'La Liga Moderna', desc:'Morrison reinventa la JLA. Torre de Babel, Nuevo Orden Mundial, grandes crossovers.', reset:null, oMin:479, oMax:759 },
-  { key:'E4', num:'04',  name:'El Cierre de Una Era', desc:'Silencio, Batman e Hijo, Flash Renacimiento. La era pre-New 52 llega a su clímax con Flashpoint.', reset:null, oMin:759, oMax:959 },
-  { key:'EW', num:'∞',   name:'Elseworlds', desc:'Historias alternativas fuera del canon. Leer en cualquier momento.', reset:null, oMin:959, oMax:99999 },
+  { key:'EP', num:'PRE', name:'La Era Pre-Crisis', desc:'Edad de Plata y Bronce, antes del gran reseteo de 1985. Dan contexto invaluable a Crisis, que cierra esta era.', reset:null, oMin:0,   oMax:200  },
+  { key:'E2', num:'02',  name:'La Era Clásica', desc:'Arranca con los orígenes canónicos post-Crisis (Batman Año Uno, JLA, WW, Titanes) y continúa con los grandes arcos de los 80s y 90s: Knightfall, Superman muere, El Largo Halloween.', reset:null, oMin:200, oMax:500 },
+  { key:'E3', num:'03',  name:'La Liga Moderna', desc:'Morrison reinventa la JLA. Torre de Babel, Nuevo Orden Mundial, grandes crossovers.', reset:null, oMin:500, oMax:750 },
+  { key:'E4', num:'04',  name:'El Cierre de Una Era', desc:'Silencio, Batman e Hijo, Flash Renacimiento. La era pre-New 52 llega a su clímax con Flashpoint.', reset:null, oMin:750, oMax:950 },
+  { key:'EW', num:'∞',   name:'Elseworlds', desc:'Historias alternativas fuera del canon. Leer en cualquier momento.', reset:null, oMin:950, oMax:99999 },
 ];
 
 // Tomos que son "eventos de reseteo" — se muestran como banner especial al final de su era
@@ -1093,82 +1092,87 @@ const HERO_LOGOS = {
 const HERO_CHARS = ['batman','superman','flash','jla','ww','gl','titanes','crisis','other'];
 
 const SALVAT_DATA = [
-  [10,"JLA: Año Uno Parte 1","01 — Los Orígenes Post-Crisis","origen",4,"JLA: Year One #1-6","jla",2],
-  [11,"JLA: Año Uno Parte 2","01 — Los Orígenes Post-Crisis","origen",4,"JLA: Year One #7-12","jla",3],
-  [34,"Wonder Woman: Dioses y Mortales","01 — Los Orígenes Post-Crisis","origen",5,"WW #1-6 (Pérez)","ww",4],
-  [53,"Nuevos Titanes: El Albor","01 — Los Orígenes Post-Crisis","origen",4,"NTT #1-8","titanes",5],
-  [6,"Green Lantern: Origen Secreto","01 — Los Orígenes Post-Crisis","origen",4,"GL #29-35","jla",6],
-  [39,"Superman: Origen Secreto","01 — Los Orígenes Post-Crisis","origen",4,"Superman: Secret Origin #1-6","jla",7],
-  [23,"Robin: Año Uno","01 — Los Orígenes Post-Crisis","origen",4,"Robin: Year One #1-4","batman",8],
-  [37,"Batgirl: Año Uno","01 — Los Orígenes Post-Crisis","origen",4,"Batgirl: Year One #1-9","batman",9],
-  [15,"Green Arrow: Año Uno","01 — Los Orígenes Post-Crisis","origen",3,"GA: Year One #1-6","other",9.5],
-  [56,"Green Lantern/GA: Héroes Errantes","02 — La Era Clásica","canon",4,"GL/GA #76-87","jla",10],
-  [27,"Batman: Nacimiento del Demonio P.1","02 — La Era Clásica","canon",4,"Batman: Birth of the Demon","batman",11],
-  [28,"Batman: Nacimiento del Demonio P.2","02 — La Era Clásica","canon",4,"continuación","batman",12],
-  [14,"Batman: Una Muerte en la Familia","02 — La Era Clásica","canon",5,"Batman #426-429","batman",13],
-  [26,"Nuevos Titanes: Contrato de Judas","02 — La Era Clásica","canon",5,"NTT #42-44, Annual #2","titanes",14],
-  [21,"Wonder Woman: Paraíso Perdido","02 — La Era Clásica","canon",3,"WW varios","ww",15],
-  [18,"Superman: La Muerte de Superman","02 — La Era Clásica","canon",5,"Superman #74-75","jla",16],
-  [44,"Batman: Extrañas Apariciones","02 — La Era Clásica","tiein",2,"Batman varios","batman",17],
-  [19,"Batman: El Largo Halloween P.1","02 — La Era Clásica","canon",5,"Long Halloween #1-6","batman",18],
-  [20,"Batman: El Largo Halloween P.2","02 — La Era Clásica","canon",5,"Long Halloween #7-13","batman",19],
-  [52,"JLA: Nuevo Orden Mundial","03 — La Liga Moderna","canon",5,"JLA #1-4","jla",25],
-  [9,"Harley Quinn: Preludios y Chistes","03 — La Liga Moderna","tiein",3,"Harley Quinn #1-7","batman",26],
-  [4,"JLA: Torre de Babel","03 — La Liga Moderna","canon",5,"JLA #43-46","jla",27],
-  [45,"Universo DC: Legados P.1","03 — La Liga Moderna","canon",4,"DC Legacies #1-5","crisis",28],
-  [46,"Universo DC: Legados P.2","03 — La Liga Moderna","canon",4,"DC Legacies #6-10","crisis",29],
-  [22,"Lex Luthor: Hombre de Acero","03 — La Liga Moderna","tiein",3,"Lex Luthor: MoS #1-5","jla",30],
-  [31,"Superman: Brainiac","03 — La Liga Moderna","canon",4,"Action Comics #866-870","jla",31],
-  [5,"Superman/Batman: Enemigos Públicos","03 — La Liga Moderna","canon",3,"Superman/Batman #1-6","jla",32],
-  [24,"Superman/Batman: Supergirl","03 — La Liga Moderna","tiein",3,"Superman/Batman #8-13","jla",33],
-  [12,"Superman/Shazam: Primer Trueno","03 — La Liga Moderna","tiein",3,"Superman/Shazam #1-4","jla",34],
-  [54,"Superman: Legado P.1","03 — La Liga Moderna","canon",3,"For Tomorrow #1-6","jla",35],
-  [55,"Superman: Legado P.2","03 — La Liga Moderna","canon",3,"For Tomorrow #7-12","jla",36],
-  [7,"Wonder Woman: El Círculo","03 — La Liga Moderna","canon",3,"WW #14-17","ww",37],
-  [47,"Wonder Woman: Los Ojos de la Gorgona","03 — La Liga Moderna","canon",3,"WW #195-205","ww",38],
-  [25,"Batman/Superman/WW: Trinidad","03 — La Liga Moderna","tiein",3,"Trinity #1-3","crisis",39],
-  [33,"Green Arrow: El Arco del Cazador","03 — La Liga Moderna","canon",3,"GA #26-35","other",40],
-  [41,"Green Arrow: Carcaj P.1","03 — La Liga Moderna","tiein",2,"GA varios","other",41],
-  [42,"Green Arrow: Carcaj P.2","03 — La Liga Moderna","tiein",2,"GA varios","other",42],
-  [17,"JLA: Tierra 2","03 — La Liga Moderna","elseworlds",4,"JLA: Earth 2","jla",43],
-  [30,"JLA: El Clavo","03 — La Liga Moderna","elseworlds",3,"JLA: The Nail #1-3","jla",43.5],
-  [48,"JLA: Justicia P.1","03 — La Liga Moderna","elseworlds",3,"Justice #1-6","jla",43.7],
-  [49,"JLA: Justicia P.2","03 — La Liga Moderna","elseworlds",3,"Justice #7-12","jla",43.9],
-  [43,"Flash: La Guerra de los Villanos","04 — El Cierre de Una Era","canon",4,"Flash #180-191","flash",45],
-  [16,"The Brave and the Bold","04 — El Cierre de Una Era","tiein",2,"Brave and Bold #1-6","other",46],
-  [38,"Young Justice: Una Liga Propia","04 — El Cierre de Una Era","tiein",3,"Young Justice #1-7","titanes",47],
-  [32,"Catwoman: El Gran Golpe de Selina","04 — El Cierre de Una Era","tiein",2,"Catwoman varios","batman",48],
-  [40,"Catwoman: El Rastro de Catwoman","04 — El Cierre de Una Era","tiein",2,"Catwoman varios","batman",49],
-  [8,"Batman: Batman e Hijo","04 — El Cierre de Una Era","canon",5,"Batman #655-666","batman",50],
-  [35,"Batman: Detective P.1","04 — El Cierre de Una Era","canon",3,"Detective Comics varios","batman",51],
-  [36,"Batman: Detective P.2","04 — El Cierre de Una Era","canon",3,"Detective Comics varios","batman",52],
-  [1,"Batman: Silencio P.1","04 — El Cierre de Una Era","canon",5,"Batman #608-613","batman",53],
-  [2,"Batman: Silencio P.2","04 — El Cierre de Una Era","canon",5,"Batman #614-619","batman",54],
-  [59,"Batman: El Hombre que Ríe / Arkham","04 — El Cierre de Una Era","canon",4,"One-shots","batman",55],
-  [29,"Lobo: Desatado","04 — El Cierre de Una Era","tiein",2,"Lobo varios","other",56],
-  [51,"Plastic Man: A la Fuga","04 — El Cierre de Una Era","tiein",1,"Plastic Man #1-8","other",57],
-  [3,"Superman: Tierra Uno P.1","Elseworlds","elseworlds",4,"Superman: Earth One #1","jla",80],
-  [13,"Superman: Tierra Uno P.2","Elseworlds","elseworlds",3,"Superman: Earth One #2","jla",81],
-  [57,"DC: La Nueva Frontera P.1","Elseworlds","elseworlds",5,"New Frontier #1-3","crisis",82],
-  [58,"DC: La Nueva Frontera P.2","Elseworlds","elseworlds",5,"New Frontier #4-6","crisis",83],
-  [50,"Batman: La Maldición de Gotham","Elseworlds","elseworlds",2,"Curse of the White Knight","batman",84],
+  // ── Orígenes Post-Crisis (inicio de La Era Clásica) ─────────
+  [10,"JLA: Año Uno Parte 1","02 — La Era Clásica","origen",4,"JLA: Year One #1-6","jla",205],
+  [11,"JLA: Año Uno Parte 2","02 — La Era Clásica","origen",4,"JLA: Year One #7-12","jla",210],
+  [34,"Wonder Woman: Dioses y Mortales","02 — La Era Clásica","origen",5,"WW #1-6 (Pérez)","ww",215],
+  [53,"Nuevos Titanes: El Albor","02 — La Era Clásica","origen",4,"NTT #1-8","titanes",220],
+  [6,"Green Lantern: Origen Secreto","02 — La Era Clásica","origen",4,"GL #29-35","gl",225],
+  [39,"Superman: Origen Secreto","02 — La Era Clásica","origen",4,"Superman: Secret Origin #1-6","superman",230],
+  [23,"Robin: Año Uno","02 — La Era Clásica","origen",4,"Robin: Year One #1-4","batman",235],
+  [37,"Batgirl: Año Uno","02 — La Era Clásica","origen",4,"Batgirl: Year One #1-9","batman",240],
+  [15,"Green Arrow: Año Uno","02 — La Era Clásica","origen",3,"GA: Year One #1-6","other",245],
+  // ── La Era Clásica ──────────────────────────────────────────
+  [56,"Green Lantern/GA: Héroes Errantes","02 — La Era Clásica","canon",4,"GL/GA #76-87","gl",250],
+  [26,"Nuevos Titanes: Contrato de Judas","02 — La Era Clásica","canon",5,"NTT #42-44, Annual #2","titanes",255],
+  [27,"Batman: Nacimiento del Demonio P.1","02 — La Era Clásica","canon",4,"Batman: Birth of the Demon","batman",260],
+  [28,"Batman: Nacimiento del Demonio P.2","02 — La Era Clásica","canon",4,"continuación","batman",265],
+  [14,"Batman: Una Muerte en la Familia","02 — La Era Clásica","canon",5,"Batman #426-429","batman",270],
+  [21,"Wonder Woman: Paraíso Perdido","02 — La Era Clásica","canon",3,"WW varios","ww",310],
+  [18,"Superman: La Muerte de Superman","02 — La Era Clásica","canon",5,"Superman #74-75","superman",315],
+  [44,"Batman: Extrañas Apariciones","02 — La Era Clásica","tiein",2,"Batman varios","batman",320],
+  [19,"Batman: El Largo Halloween P.1","02 — La Era Clásica","canon",5,"Long Halloween #1-6","batman",325],
+  [20,"Batman: El Largo Halloween P.2","02 — La Era Clásica","canon",5,"Long Halloween #7-13","batman",330],
+  // ── La Liga Moderna ─────────────────────────────────────────
+  [52,"JLA: Nuevo Orden Mundial","03 — La Liga Moderna","canon",5,"JLA #1-4","jla",500],
+  [9,"Harley Quinn: Preludios y Chistes","03 — La Liga Moderna","tiein",3,"Harley Quinn #1-7","batman",505],
+  [4,"JLA: Torre de Babel","03 — La Liga Moderna","canon",5,"JLA #43-46","jla",510],
+  [45,"Universo DC: Legados P.1","03 — La Liga Moderna","canon",4,"DC Legacies #1-5","crisis",515],
+  [46,"Universo DC: Legados P.2","03 — La Liga Moderna","canon",4,"DC Legacies #6-10","crisis",520],
+  [22,"Lex Luthor: Hombre de Acero","03 — La Liga Moderna","tiein",3,"Lex Luthor: MoS #1-5","superman",525],
+  [31,"Superman: Brainiac","03 — La Liga Moderna","canon",4,"Action Comics #866-870","superman",530],
+  [5,"Superman/Batman: Enemigos Públicos","03 — La Liga Moderna","canon",3,"Superman/Batman #1-6","superman",535],
+  [24,"Superman/Batman: Supergirl","03 — La Liga Moderna","tiein",3,"Superman/Batman #8-13","superman",540],
+  [12,"Superman/Shazam: Primer Trueno","03 — La Liga Moderna","tiein",3,"Superman/Shazam #1-4","superman",545],
+  [54,"Superman: Legado P.1","03 — La Liga Moderna","canon",3,"For Tomorrow #1-6","superman",550],
+  [55,"Superman: Legado P.2","03 — La Liga Moderna","canon",3,"For Tomorrow #7-12","superman",555],
+  [7,"Wonder Woman: El Círculo","03 — La Liga Moderna","canon",3,"WW #14-17","ww",560],
+  [47,"Wonder Woman: Los Ojos de la Gorgona","03 — La Liga Moderna","canon",3,"WW #195-205","ww",565],
+  [25,"Batman/Superman/WW: Trinidad","03 — La Liga Moderna","tiein",3,"Trinity #1-3","crisis",570],
+  [33,"Green Arrow: El Arco del Cazador","03 — La Liga Moderna","canon",3,"GA #26-35","other",575],
+  [41,"Green Arrow: Carcaj P.1","03 — La Liga Moderna","tiein",2,"GA varios","other",580],
+  [42,"Green Arrow: Carcaj P.2","03 — La Liga Moderna","tiein",2,"GA varios","other",585],
+  // ── El Cierre de Una Era ─────────────────────────────────────
+  [43,"Flash: La Guerra de los Villanos","04 — El Cierre de Una Era","canon",4,"Flash #180-191","flash",750],
+  [38,"Young Justice: Una Liga Propia","04 — El Cierre de Una Era","tiein",3,"Young Justice #1-7","titanes",755],
+  [32,"Catwoman: El Gran Golpe de Selina","04 — El Cierre de Una Era","tiein",2,"Catwoman varios","batman",760],
+  [40,"Catwoman: El Rastro de Catwoman","04 — El Cierre de Una Era","tiein",2,"Catwoman varios","batman",765],
+  [1,"Batman: Silencio P.1","04 — El Cierre de Una Era","canon",5,"Batman #608-613","batman",770],
+  [2,"Batman: Silencio P.2","04 — El Cierre de Una Era","canon",5,"Batman #614-619","batman",775],
+  [59,"Batman: El Hombre que Ríe / Arkham","04 — El Cierre de Una Era","canon",4,"One-shots","batman",780],
+  [8,"Batman: Batman e Hijo","04 — El Cierre de Una Era","canon",5,"Batman #655-666","batman",785],
+  [35,"Batman: Detective P.1","04 — El Cierre de Una Era","canon",3,"Detective Comics varios","batman",790],
+  [36,"Batman: Detective P.2","04 — El Cierre de Una Era","canon",3,"Detective Comics varios","batman",795],
+  [16,"The Brave and the Bold","04 — El Cierre de Una Era","tiein",2,"Brave and Bold #1-6","other",800],
+  [29,"Lobo: Desatado","04 — El Cierre de Una Era","tiein",2,"Lobo varios","other",805],
+  [51,"Plastic Man: A la Fuga","04 — El Cierre de Una Era","tiein",1,"Plastic Man #1-8","other",810],
+  // ── Elseworlds ───────────────────────────────────────────────
+  [17,"JLA: Tierra 2","Elseworlds","elseworlds",4,"JLA: Earth 2","jla",950],
+  [30,"JLA: El Clavo","Elseworlds","elseworlds",3,"JLA: The Nail #1-3","jla",955],
+  [48,"JLA: Justicia P.1","Elseworlds","elseworlds",3,"Justice #1-6","jla",960],
+  [49,"JLA: Justicia P.2","Elseworlds","elseworlds",3,"Justice #7-12","jla",965],
+  [3,"Superman: Tierra Uno P.1","Elseworlds","elseworlds",4,"Superman: Earth One #1","superman",970],
+  [13,"Superman: Tierra Uno P.2","Elseworlds","elseworlds",3,"Superman: Earth One #2","superman",975],
+  [57,"DC: La Nueva Frontera P.1","Elseworlds","elseworlds",5,"New Frontier #1-3","crisis",980],
+  [58,"DC: La Nueva Frontera P.2","Elseworlds","elseworlds",5,"New Frontier #4-6","crisis",985],
+  [50,"Batman: La Maldición de Gotham","Elseworlds","elseworlds",2,"Curse of the White Knight","batman",990],
 ];
 
 const EXTRA = [
-  {id:'x-crisis',  title:'Crisis en Tierras Infinitas',            volume:'Edición Deluxe', edition:'Ovni Press',    arc:'00 — El Gran Reseteo',          lore:'canon',     stars:5,order:0.5, char:'crisis',salvat:null,issue:'Crisis on Infinite Earths #1-12'},
-  {id:'x-añouno',  title:'Batman: Año Uno',                        volume:'Tapa Dura',      edition:'ECC',           arc:'01 — Los Orígenes Post-Crisis', lore:'origen',    stars:5,order:1.5, char:'batman',salvat:null,issue:'Batman #404-407'},
-  {id:'x-victoria',title:'Batman: Victoria Oscura',                volume:'Edición Deluxe', edition:'ECC/Deluxe',    arc:'02 — La Era Clásica',           lore:'canon',     stars:5,order:19.5,char:'batman',salvat:null,issue:'The Long Halloween sequel'},
-  {id:'x-caida0',  title:'La Caída del Caballero Oscuro #0',       volume:'Tomo 0',         edition:'Colección',     arc:'02 — La Era Clásica',           lore:'canon',     stars:4,order:13.0,char:'batman',salvat:null,issue:'Batman #484-491'},
-  {id:'x-caida1',  title:'La Caída del Caballero Oscuro #1',       volume:'Tomo 1',         edition:'Colección',     arc:'02 — La Era Clásica',           lore:'canon',     stars:5,order:13.1,char:'batman',salvat:null,issue:'Batman #492-500'},
-  {id:'x-caida2',  title:'La Caída del Caballero Oscuro #2',       volume:'Tomo 2',         edition:'Colección',     arc:'02 — La Era Clásica',           lore:'canon',     stars:5,order:13.2,char:'batman',salvat:null,issue:'Batman #501-508'},
-  {id:'x-caida3',  title:'La Caída del Caballero Oscuro #3',       volume:'Tomo 3',         edition:'Colección',     arc:'02 — La Era Clásica',           lore:'canon',     stars:4,order:13.3,char:'batman',salvat:null,issue:'Batman #509-515'},
-  {id:'x-caida4',  title:'La Caída del Caballero Oscuro #4',       volume:'Tomo 4',         edition:'Colección',     arc:'02 — La Era Clásica',           lore:'canon',     stars:4,order:13.4,char:'batman',salvat:null,issue:'Batman #516-520'},
-  {id:'x-caida5',  title:'La Caída del Caballero Oscuro #5',       volume:'Tomo 5',         edition:'Colección',     arc:'02 — La Era Clásica',           lore:'canon',     stars:4,order:13.5,char:'batman',salvat:null,issue:'Batman #521-526'},
-  {id:'x-caida6',  title:'La Caída del Caballero Oscuro #6',       volume:'Tomo 6',         edition:'Colección',     arc:'02 — La Era Clásica',           lore:'canon',     stars:4,order:13.6,char:'batman',salvat:null,issue:'Batman #527-532'},
-  {id:'x-flash',   title:'Flash: Renacimiento',                    volume:'3ª Edición',     edition:'ECC',           arc:'04 — El Cierre de Una Era',     lore:'canon',     stars:5,order:44.5,char:'flash', salvat:null,issue:'The Flash: Rebirth #1-6'},
-  {id:'x-fp',      title:'Flashpoint',                             volume:'Tomo Salvat 60', edition:'Salvat',        arc:'05 — Flashpoint: El Segundo Reseteo',lore:'canon',stars:5,order:60, char:'crisis',salvat:60,  issue:'Flashpoint #1-5'},
-  {id:'x-dkr',     title:'Batman: El Regreso del Caballero Oscuro',volume:'3ª Edición',     edition:'DC Black Label',arc:'Elseworlds',                    lore:'elseworlds',stars:5,order:85, char:'batman',salvat:null,issue:'The Dark Knight Returns #1-4'},
-  {id:'x-3jokers', title:'Batman: 3 Jokers',                       volume:'',               edition:'DC Black Label',arc:'Elseworlds',                    lore:'elseworlds',stars:4,order:86, char:'batman',salvat:null,issue:'Batman: Three Jokers #1-3'},
+  {id:'x-crisis',  title:'Crisis en Tierras Infinitas',            volume:'Edición Deluxe', edition:'Ovni Press',    arc:'00 — El Gran Reseteo',          lore:'canon',     stars:5,order:100,char:'crisis',salvat:null,issue:'Crisis on Infinite Earths #1-12'},
+  {id:'x-añouno',  title:'Batman: Año Uno',                        volume:'Tapa Dura',      edition:'ECC',           arc:'02 — La Era Clásica',           lore:'origen',    stars:5,order:200,char:'batman',salvat:null,issue:'Batman #404-407'},
+  {id:'x-victoria',title:'Batman: Victoria Oscura',                volume:'Edición Deluxe', edition:'ECC/Deluxe',    arc:'02 — La Era Clásica',           lore:'canon',     stars:5,order:335,char:'batman',salvat:null,issue:'The Long Halloween sequel'},
+  {id:'x-caida0',  title:'La Caída del Caballero Oscuro #0',       volume:'Tomo 0',         edition:'Colección',     arc:'02 — La Era Clásica',           lore:'canon',     stars:4,order:275,char:'batman',salvat:null,issue:'Batman #484-491'},
+  {id:'x-caida1',  title:'La Caída del Caballero Oscuro #1',       volume:'Tomo 1',         edition:'Colección',     arc:'02 — La Era Clásica',           lore:'canon',     stars:5,order:280,char:'batman',salvat:null,issue:'Batman #492-500'},
+  {id:'x-caida2',  title:'La Caída del Caballero Oscuro #2',       volume:'Tomo 2',         edition:'Colección',     arc:'02 — La Era Clásica',           lore:'canon',     stars:5,order:285,char:'batman',salvat:null,issue:'Batman #501-508'},
+  {id:'x-caida3',  title:'La Caída del Caballero Oscuro #3',       volume:'Tomo 3',         edition:'Colección',     arc:'02 — La Era Clásica',           lore:'canon',     stars:4,order:290,char:'batman',salvat:null,issue:'Batman #509-515'},
+  {id:'x-caida4',  title:'La Caída del Caballero Oscuro #4',       volume:'Tomo 4',         edition:'Colección',     arc:'02 — La Era Clásica',           lore:'canon',     stars:4,order:295,char:'batman',salvat:null,issue:'Batman #516-520'},
+  {id:'x-caida5',  title:'La Caída del Caballero Oscuro #5',       volume:'Tomo 5',         edition:'Colección',     arc:'02 — La Era Clásica',           lore:'canon',     stars:4,order:300,char:'batman',salvat:null,issue:'Batman #521-526'},
+  {id:'x-caida6',  title:'La Caída del Caballero Oscuro #6',       volume:'Tomo 6',         edition:'Colección',     arc:'02 — La Era Clásica',           lore:'canon',     stars:4,order:305,char:'batman',salvat:null,issue:'Batman #527-532'},
+  {id:'x-flash',   title:'Flash: Renacimiento',                    volume:'3ª Edición',     edition:'ECC',           arc:'04 — El Cierre de Una Era',     lore:'canon',     stars:5,order:820,char:'flash', salvat:null,issue:'The Flash: Rebirth #1-6'},
+  {id:'x-fp',      title:'Flashpoint',                             volume:'Tomo Salvat 60', edition:'Salvat',        arc:'05 — Flashpoint: El Segundo Reseteo',lore:'canon',stars:5,order:900,char:'crisis',salvat:60,  issue:'Flashpoint #1-5'},
+  {id:'x-dkr',     title:'Batman: El Regreso del Caballero Oscuro',volume:'3ª Edición',     edition:'DC Black Label',arc:'Elseworlds',                    lore:'elseworlds',stars:5,order:995,char:'batman',salvat:null,issue:'The Dark Knight Returns #1-4'},
+  {id:'x-3jokers', title:'Batman: 3 Jokers',                       volume:'',               edition:'DC Black Label',arc:'Elseworlds',                    lore:'elseworlds',stars:4,order:999,char:'batman',salvat:null,issue:'Batman: Three Jokers #1-3'},
 ];
 
 // ── CONFIG ─────────────────────────────────────────────────────
@@ -1683,7 +1687,7 @@ Responde SOLO con JSON válido sin markdown:
   "tomos": [
     {
       "titulo": "título exacto en español",
-      "order": número entero (usa rangos: PRE=10-41, 01=59-160, 02=178-471, 03=491-748, 04=770-949, EW=964-995),
+      "order": número entero (usa rangos: PRE=100-190, 02=200-490, 03=500-740, 04=750-940, EW=950-999),
       "year": año,
       "writer": "guionista",
       "artist": "dibujante",
@@ -1876,12 +1880,11 @@ async function doAutocomplete(){
   const prompt=`Eres un experto en DC Comics. El usuario quiere añadir: "${title}"
 
 Eras (order en enteros 3 dígitos):
-- PRE (order 10-41): Era Pre-Crisis
-- 01 (order 59-160): Orígenes Post-Crisis
-- 02 (order 178-471): Era Clásica 80s-90s
-- 03 (order 491-748): Liga Moderna 2000s
-- 04 (order 770-949): Cierre pre-New52
-- EW (order 964-995): Elseworlds
+- PRE (order 100-190): Era Pre-Crisis
+- 02 (order 200-490): Era Clásica — orígenes post-Crisis (200-249) y grandes arcos 80s-90s (250-490)
+- 03 (order 500-740): Liga Moderna 2000s
+- 04 (order 750-940): Cierre pre-New52
+- EW (order 950-999): Elseworlds
 
 ${SAGAS_CONOCIDAS}
 
