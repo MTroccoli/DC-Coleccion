@@ -171,20 +171,44 @@ body {
   border-bottom: 1px solid var(--border);
   position: sticky; top: 0; z-index: 40;
 }
-.filter-scroll {
-  display: flex; gap: 6px;
-  padding: 10px 16px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  align-items: center;
+.filter-bar {
+  display: flex; padding: 8px 12px; gap: 8px;
 }
-.filter-scroll::-webkit-scrollbar { display: none; }
-.filter-sep {
-  width: 1px; height: 20px;
-  background: var(--border2);
-  flex-shrink: 0; margin: 0 2px;
+.filter-dropdown {
+  flex: 1; min-width: 0;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 7px 8px; border-radius: 8px; cursor: pointer;
+  border: 1px solid var(--border2); background: var(--surface2); color: var(--muted);
+  display: flex; align-items: center; gap: 3px;
+  transition: all 0.15s; white-space: nowrap; overflow: hidden;
 }
+.filter-dropdown.has-value { border-color: var(--gold); color: var(--gold); background: rgba(200,168,75,0.08); }
+.fd-label { flex: 1; overflow: hidden; text-overflow: ellipsis; text-align: left; }
+.fd-caret { font-size: 9px; opacity: 0.5; flex-shrink: 0; transition: transform 0.15s; }
+.filter-dropdown.is-open .fd-caret { transform: rotate(180deg); }
+.filter-panel {
+  display: none; position: absolute; top: 100%; left: 0; right: 0;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 8px 12px 12px; flex-wrap: wrap; gap: 6px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.5); z-index: 1;
+}
+.filter-panel.open { display: flex; }
+.filter-opt {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 6px 12px; border-radius: 20px; cursor: pointer;
+  border: 1px solid var(--border2); background: none; color: var(--muted);
+  transition: all 0.15s; white-space: nowrap; flex-shrink: 0;
+  display: flex; align-items: center; gap: 5px;
+}
+.filter-opt:active { transform: scale(0.95); }
+.filter-opt.sel            { background: var(--gold);   border-color: var(--gold);   color: #111; }
+.filter-opt.sel-canon      { background: var(--red);    border-color: var(--red);    color: #fff; }
+.filter-opt.sel-tiein      { background: var(--yellow); border-color: var(--yellow); color: #111; }
+.filter-opt.sel-elseworlds { background: var(--purple); border-color: var(--purple); color: #fff; }
+.filter-opt.sel-origen     { background: var(--green);  border-color: var(--green);  color: #fff; }
+#filter-backdrop { display: none; position: fixed; inset: 0; z-index: 39; }
 .pill {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 12px; font-weight: 600;
@@ -440,23 +464,6 @@ main {
 .edit-btn:active { color: var(--gold); }
 
 /* hero filter second row */
-.filter-scroll-heroes {
-  display: flex; gap: 6px;
-  padding: 0 16px 10px;
-  overflow-x: auto;
-  scrollbar-width: none; -ms-overflow-style: none;
-  align-items: center;
-}
-.filter-scroll-heroes::-webkit-scrollbar { display: none; }
-.filter-scroll-eras {
-  display: flex; gap: 6px;
-  padding: 0 16px 10px;
-  overflow-x: auto;
-  scrollbar-width: none; -ms-overflow-style: none;
-  align-items: center;
-}
-.filter-scroll-eras::-webkit-scrollbar { display: none; }
-.pill-era.active { background: #1e3050; border-color: #4a7ab5; color: #8bb4e0; }
 .pill-hero {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 11px; font-weight: 600;
@@ -859,21 +866,27 @@ main {
 </div>
 
 <!-- ── FILTER BAR ── -->
-<div class="filter-section">
-  <div class="filter-scroll">
-    <button class="pill active" data-filter="all">Todos</button>
-    <button class="pill" data-filter="owned">Tengo</button>
-    <button class="pill pill-missing" data-filter="missing">No tengo</button>
-    <button class="pill" data-filter="unread">Sin leer</button>
-    <div class="filter-sep"></div>
-    <button class="pill pill-canon" data-lore="canon">Canon</button>
-    <button class="pill pill-tiein" data-lore="tiein">Tie-in</button>
-    <button class="pill pill-elseworlds" data-lore="elseworlds">Elseworlds</button>
-    <button class="pill pill-origen" data-lore="origen">Origen</button>
+<div class="filter-section" id="filter-section">
+  <div class="filter-bar">
+    <button class="filter-dropdown" id="fd-status" onclick="togglePanel('status')">
+      <span class="fd-label" id="fd-status-label">Estado</span><span class="fd-caret">▾</span>
+    </button>
+    <button class="filter-dropdown" id="fd-lore" onclick="togglePanel('lore')">
+      <span class="fd-label" id="fd-lore-label">Tipo</span><span class="fd-caret">▾</span>
+    </button>
+    <button class="filter-dropdown" id="fd-char" onclick="togglePanel('char')">
+      <span class="fd-label" id="fd-char-label">Héroe</span><span class="fd-caret">▾</span>
+    </button>
+    <button class="filter-dropdown" id="fd-era" onclick="togglePanel('era')">
+      <span class="fd-label" id="fd-era-label">Era</span><span class="fd-caret">▾</span>
+    </button>
   </div>
-  <div class="filter-scroll-heroes" id="hero-filters"></div>
-  <div class="filter-scroll-eras" id="era-filters"></div>
+  <div class="filter-panel" id="fpanel-status"></div>
+  <div class="filter-panel" id="fpanel-lore"></div>
+  <div class="filter-panel" id="fpanel-char"></div>
+  <div class="filter-panel" id="fpanel-era"></div>
 </div>
+<div id="filter-backdrop" onclick="closeAllPanels()"></div>
 
 <!-- ── MAIN ── -->
 <main><div id="root"></div></main>
@@ -1272,8 +1285,7 @@ async function loadState() {
   } else {
     comics = buildDefault();
   }
-  buildHeroFilters();
-  buildEraFilters();
+  updateDropdownLabels();
   render();
 
   // 2. Try Supabase in background
@@ -1341,48 +1353,77 @@ function getVisible() {
   return list.sort((a,b)=>a.order-b.order);
 }
 
-function buildHeroFilters() {
-  const container = document.getElementById('hero-filters');
-  const RAW_COLORS = {
-    batman:'#c8a84b', superman:'#2266bb', flash:'#cc3322', jla:'#e8e8e0',
-    ww:'#cc6622', gl:'#226622', titanes:'#aa4488', crisis:'#4477cc', other:'#5a5a56'
-  };
-  container.innerHTML = HERO_CHARS.map(ch => {
-    const col = RAW_COLORS[ch] || '#5a5a56';
+const RAW_CHAR_COLORS = {batman:'#c8a84b',superman:'#2266bb',flash:'#cc3322',jla:'#e8e8e0',ww:'#cc6622',gl:'#226622',titanes:'#aa4488',crisis:'#4477cc',other:'#5a5a56'};
+
+function buildFilterPanels() {
+  // STATUS
+  const statusOpts = [{v:'all',l:'Todos'},{v:'owned',l:'Tengo'},{v:'missing',l:'No tengo'},{v:'unread',l:'Sin leer'}];
+  document.getElementById('fpanel-status').innerHTML = statusOpts.map(o =>
+    `<button class="filter-opt${activeFilter===o.v&&o.v!=='all'?' sel':''}" onclick="setStatus('${o.v}')">${o.l}</button>`
+  ).join('');
+
+  // LORE
+  const loreOpts = [{v:'canon',l:'Canon'},{v:'tiein',l:'Tie-in'},{v:'elseworlds',l:'Elseworlds'},{v:'origen',l:'Origen'}];
+  document.getElementById('fpanel-lore').innerHTML = loreOpts.map(o =>
+    `<button class="filter-opt${activeLore===o.v?' sel-'+o.v:''}" onclick="setLore('${o.v}')">${o.l}</button>`
+  ).join('');
+
+  // CHAR
+  document.getElementById('fpanel-char').innerHTML = HERO_CHARS.map(ch => {
+    const col = RAW_CHAR_COLORS[ch]||'#5a5a56';
     const logo = HERO_LOGOS[ch] ? HERO_LOGOS[ch](col, 16) : '';
-    return `<button class="pill-hero" data-char="${ch}" style="color:${col};border-color:${col}44" onclick="toggleChar('${ch}')">
-      ${logo}<span>${CHAR_LABELS[ch]||ch}</span>
-    </button>`;
+    const on = activeChar===ch;
+    return `<button class="pill-hero${on?' active':''}" onclick="setChar('${ch}')"
+      style="color:${col};border-color:${on?col:col+'44'};background:${on?col+'28':'none'}">
+      ${logo}<span>${CHAR_LABELS[ch]||ch}</span></button>`;
   }).join('');
-}
 
-function buildEraFilters() {
-  const container = document.getElementById('era-filters');
-  if(!container) return;
-  container.innerHTML = ERAS.map(e => {
+  // ERA
+  document.getElementById('fpanel-era').innerHTML = ERAS.map(e => {
     const short = e.name.replace(/^(la era |el |la |los )/i,'').replace(/ de una era$/i,'');
-    return `<button class="pill pill-era" data-era="${e.key}" onclick="setEraFilter('${e.key}')">${e.num} · ${short}</button>`;
+    return `<button class="filter-opt${activeEra===e.key?' sel':''}" onclick="setEraFilter('${e.key}')">${e.num} · ${short}</button>`;
   }).join('');
 }
 
-function setEraFilter(key) {
-  activeEra = activeEra===key ? null : key;
-  document.querySelectorAll('.pill-era').forEach(b=>b.classList.toggle('active', b.dataset.era===activeEra));
-  render();
+function updateDropdownLabels() {
+  const SL = {all:'Estado',owned:'Tengo',missing:'No tengo',unread:'Sin leer'};
+  const LL = {canon:'Canon',tiein:'Tie-in',elseworlds:'Elseworlds',origen:'Origen'};
+  document.getElementById('fd-status-label').textContent = SL[activeFilter]||'Estado';
+  document.getElementById('fd-status').classList.toggle('has-value', activeFilter!=='all');
+  document.getElementById('fd-lore-label').textContent = activeLore ? LL[activeLore] : 'Tipo';
+  document.getElementById('fd-lore').classList.toggle('has-value', !!activeLore);
+  document.getElementById('fd-char-label').textContent = activeChar ? (CHAR_LABELS[activeChar]||activeChar) : 'Héroe';
+  document.getElementById('fd-char').classList.toggle('has-value', !!activeChar);
+  const era = ERAS.find(e=>e.key===activeEra);
+  document.getElementById('fd-era-label').textContent = era
+    ? era.num+' · '+era.name.replace(/^(la era |el |la |los )/i,'').replace(/ de una era$/i,'')
+    : 'Era';
+  document.getElementById('fd-era').classList.toggle('has-value', !!activeEra);
 }
 
-function toggleChar(ch) {
-  if(activeChar===ch){ activeChar=null; }
-  else { activeChar=ch; }
-  document.querySelectorAll('.pill-hero').forEach(b=>{
-    const isActive = b.dataset.char===activeChar;
-    const RAW_COLORS = {batman:'#c8a84b',superman:'#2266bb',flash:'#cc3322',jla:'#e8e8e0',ww:'#cc6622',gl:'#226622',titanes:'#aa4488',crisis:'#4477cc',other:'#5a5a56'};
-    const col = RAW_COLORS[b.dataset.char]||'#5a5a56';
-    b.style.background = isActive ? col+'28' : 'none';
-    b.style.borderColor = isActive ? col : col+'44';
-  });
-  render();
+function togglePanel(which) {
+  const panel = document.getElementById('fpanel-'+which);
+  const btn   = document.getElementById('fd-'+which);
+  const isOpen = panel.classList.contains('open');
+  closeAllPanels();
+  if(!isOpen) {
+    buildFilterPanels();
+    panel.classList.add('open');
+    btn.classList.add('is-open');
+    document.getElementById('filter-backdrop').style.display = 'block';
+  }
 }
+
+function closeAllPanels() {
+  document.querySelectorAll('.filter-panel').forEach(p=>p.classList.remove('open'));
+  document.querySelectorAll('.filter-dropdown').forEach(b=>b.classList.remove('is-open'));
+  document.getElementById('filter-backdrop').style.display = 'none';
+}
+
+function setStatus(v) { activeFilter=v; closeAllPanels(); updateDropdownLabels(); render(); }
+function setLore(v)   { activeLore = activeLore===v ? null : v; closeAllPanels(); updateDropdownLabels(); render(); }
+function setChar(ch)  { activeChar = activeChar===ch ? null : ch; closeAllPanels(); updateDropdownLabels(); render(); }
+function setEraFilter(key) { activeEra = activeEra===key ? null : key; closeAllPanels(); updateDropdownLabels(); render(); }
 
 // ── RENDER ────────────────────────────────────────────────────
 function starsHtml(n){ n=n||3; return `<span class="card-stars">${'★'.repeat(n)}<span class="stars-dim">${'★'.repeat(5-n)}</span></span>`; }
@@ -2019,16 +2060,6 @@ document.getElementById('f-order').addEventListener('input', () => {
 });
 document.getElementById('modal').addEventListener('click', e=>{ if(e.target===document.getElementById('modal')) closeModal(); });
 
-document.querySelectorAll('[data-filter]').forEach(btn=>btn.addEventListener('click',()=>{
-  document.querySelectorAll('[data-filter]').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active'); activeFilter=btn.dataset.filter; render();
-}));
-document.querySelectorAll('[data-lore]').forEach(btn=>btn.addEventListener('click',()=>{
-  const t=btn.dataset.lore;
-  if(activeLore===t){activeLore=null;btn.classList.remove('active');}
-  else{document.querySelectorAll('[data-lore]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');activeLore=t;}
-  render();
-}));
 function toggleSearch() {
   const overlay = document.getElementById('search-overlay');
   const btn = document.getElementById('btn-search');
