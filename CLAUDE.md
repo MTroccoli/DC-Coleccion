@@ -157,3 +157,21 @@ vercel dev
 # Ver logs de producción
 vercel logs dc-coleccion.vercel.app
 ```
+
+## Forma de trabajo
+
+El usuario quiere que se ejecute sin pedir permiso. Al gestionar el catálogo:
+
+- **Ejecutar y reportar**, no preguntar. Si pide agregar/corregir/borrar un tomo, hacerlo directamente.
+- **Elegir el `order` y los campos** con criterio propio y explicar la decisión después. No preguntar dónde ubicar algo.
+- **Consolidar duplicados** sin consultar cuando es evidente (un ómnibus que cubre tomos individuales ya cargados).
+- **Solo preguntar** si la acción es destructiva, irreversible y hay ambigüedad real sobre qué quiere.
+- Al borrar varias entradas, guardar primero un respaldo JSON en el scratchpad.
+
+Si Supabase da timeout o `password authentication failed`, revisar `get_project`: el free tier
+pausa el proyecto por inactividad (`INACTIVE`) y hay que llamar `restore_project` y esperar
+~2 min a que pase de `COMING_UP` a `ACTIVE_HEALTHY`. A veces reporta `ACTIVE_HEALTHY` pero
+todavía rechaza conexiones; en ese caso reintentar.
+
+La REST API de Supabase y `openlibrary.org` están bloqueadas por la política de red en sesiones
+cloud. El entorno `dc-coleccion` las habilita, pero hay que seleccionarlo al crear la sesión.
